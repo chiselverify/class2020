@@ -1,0 +1,15 @@
+class WaveformTester(dut: DeviceUnderTest) extends PeekPokeTester(dut) {
+
+  poke(dut.io.a, 0)
+  poke(dut.io.b, 0)
+  step(1)
+  poke(dut.io.a, 1)
+  poke(dut.io.b, 0)
+  step(1)
+  poke(dut.io.a, 0)
+  poke(dut.io.b, 1)
+  step(1)
+  poke(dut.io.a, 1)
+  poke(dut.io.b, 1)
+  step(1)
+}

@@ -1,0 +1,86 @@
+\input{slides_common}
+
+\newif\ifbook
+\input{../shared/chisel}
+
+\title{Verification of Digital Designs: Week 2}
+\author{Martin Schoeberl}
+\date{\today}
+\institute{Technical University of Denmark\\
+Embedded Systems Engineering}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+\begin{frame}[fragile]{Overview}
+\begin{itemize}
+\item Motivation
+\item Course organization
+\item Languages for digital hardware design
+%\item Testing (see 2.1.4)
+\item Debugging, Testing, and Verification
+\item A little bit of Scala
+\item An Exercise
+\end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}[fragile]{Regresssion Tests}
+\begin{itemize}
+\item But tests are collected over time
+\item When a bug is found, a test is written to reproduce this bug
+\item Collection of tests increases
+\item Runs every night to test for \emph{regression}
+\begin{itemize}
+\item Did a code change introduce a bug in the current code base?
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Continuous Integration (CI)}
+\begin{itemize}
+\item Next logical step from regression tests
+\item Run all tests whenever code is changed
+\item Automate this with a repository, e.g., on GitHub
+\item Run CI on Travis (with GitHub integration)
+\item Show about this on the Chisel book
+\begin{itemize}
+\item Show \code{sbt test}
+\item Mails from travis
+\item Live demo on travis
+\end{itemize}
+\item \url{https://travis-ci.com/schoeberl/chisel-book}
+\end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}[fragile]{Lab Time: Hello World Testing}
+\begin{itemize}
+\item xxx
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Summary}
+\begin{itemize}
+\item xxx
+\end{itemize}
+\end{frame}
+
+\end{document}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}

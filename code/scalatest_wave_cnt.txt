@@ -1,0 +1,8 @@
+class WaveformCounterSpec extends FlatSpec with Matchers {
+
+  "WaveformCounter" should "pass" in {
+    Driver.execute(Array("--generate-vcd-output", "on"), () => new DeviceUnderTest()) { c =>
+      new WaveformCounterTester(c)
+    } should be (true)
+  }
+}

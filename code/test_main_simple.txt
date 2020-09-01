@@ -1,0 +1,5 @@
+object TesterSimple extends App {
+  chisel3.iotesters.Driver(() => new DeviceUnderTest()) { c =>
+    new TesterSimple(c)
+  }
+}

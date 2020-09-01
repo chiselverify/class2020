@@ -1,0 +1,10 @@
+class WaveformCounterTester(dut: DeviceUnderTest) extends PeekPokeTester(dut) {
+
+  for (a <- 0 until 4) {
+    for (b <- 0 until 4) {
+      poke(dut.io.a, a)
+      poke(dut.io.b, b)
+      step(1)
+    }
+  }
+}

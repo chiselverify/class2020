@@ -1,0 +1,7 @@
+class WaveformSpec extends FlatSpec with Matchers {
+  "Waveform" should "pass" in {
+    Driver.execute(Array("--generate-vcd-output", "on"), () => new DeviceUnderTest()) { c =>
+      new WaveformTester(c)
+    } should be (true)
+  }
+}
