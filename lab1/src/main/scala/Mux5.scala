@@ -25,3 +25,9 @@ class Mux5 extends Module {
     is("b101".U) { io.y := io.e }
   }
 }
+
+object MuxHW extends App {
+
+  chisel3.Driver.execute(Array("--target-dir", "generated"),
+    () => new Mux5())
+}
