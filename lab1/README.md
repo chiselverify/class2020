@@ -14,7 +14,7 @@ class Mux5 extends Module {
     val sel = Input(UInt(3.W))
     val y = Output(UInt(8.W))
   })
-  ...
+  .....
 }
 ```
 
