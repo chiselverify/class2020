@@ -15,25 +15,177 @@ Embedded Systems Engineering}
 \titlepage
 \end{frame}
 
-
 \begin{frame}[fragile]{Overview}
 \begin{itemize}
-\item Motivation
-\item Course organization
-\item Languages for digital hardware design
-%\item Testing (see 2.1.4)
-\item Debugging, Testing, and Verification
-\item A little bit of Scala
-\item An Exercise
+\item More on tooling
+\item Some more Scala (+ repetition)
+\item An example test of an ALU
+\item Regression tests and continuous integration
+\item Presentation of reading material
+\item Lab: test an accumulator (from the Leros processor)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Tools: git and GitHub}
+\begin{itemize}
+\item git is a distributed version-control system
+\item You \emph{may} also use GitHub as code host
+\item \code{git clone path} local copy from a server
+\item \code{git pull} get updates
+\item \code{git commit -a -m "message"} add your changes locallye
+\item \code{git push} push to the server
+\item \code{git add filename} add a file to the repo
+\item Always start with git pull
+\item Concurrent edits are merged on a line-by-line bases
+\item When sharing text, have manual line breaks to minimize chances of conflict
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Tools: make}
+\begin{itemize}
+\item \code{make} is for automation
+\item A list a dependencies and commands to run
+\item Can become complex
+\item Keep it simple just to remember commands
+\item Look into chisel-example
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Using make}
+\begin{itemize}
+\item Run it with:
+\begin{itemize}
+\item \code{make}
+\end{itemize}
+\item Run a target:
+\begin{itemize}
+\item \code{make target}
+\end{itemize}
+\item Targets are described in a \code{Makefile}
+\begin{itemize}
+\item \code{target: dependency}
+\item \code{[tab] command}
+\end{itemize}
+\item Let us explore it now
+\item Install \code{make} and write a simple \code{Makefile}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Scala Values and Variables}
+\begin{chisel}
+// A value is a constant
+val i = 0
+// No new assignment; this will not compile
+i = 3
+
+// A variable can change the value
+var v = "Hello"
+v = "Hello World"
+
+// Type usually inferred, but can be declared
+var s: String = "abc"
+\end{chisel}
+\end{frame}
+
+\begin{frame}[fragile]{Simple Loops}
+\begin{chisel}
+// Loops from 0 to 9
+// Automatically creates loop value i
+for (i <- 0 until 10) {
+  println(i)
+}
+\end{chisel}
+\end{frame}
+
+\begin{frame}[fragile]{Scala Classes}
+\begin{chisel}
+// A simple class
+class Example {
+  // A field, initialized in the constructor
+  var n = 0
+  
+  // A setter method
+  def set(v: Int) = {
+    n = v
+  }
+  
+  // Another method
+  def print() = {
+    println(n)
+  }
+}
+\end{chisel}
+\end{frame}
+
+\begin{frame}[fragile]{Functions}
+\begin{itemize}
+\begin{chisel}
+class Example {
+  
+  def compute(a: Int, b: Int): Int = {
+    a + b
+  }
+}
+\end{chisel}
+\item Last expression is the return value
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Functions}
+\begin{itemize}
+\begin{chisel}
+class Example {
+  
+  def complexCompute(a: Int, b: Int, c: Int): Int = {
+  
+    def add(x: Int, y: Int) {
+      x + y
+    }
+    
+    add(a, b) + c
+  }
+}
+\end{chisel}
+\item We can define local functions
+\item To better organize our code
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Functions}
+\begin{itemize}
+\begin{chisel}
+class Example {
+  
+  def complexCompute(a: Int, b: Int, c: Int): Int = {
+  
+    def add() {
+      a + b
+    }
+    
+    add() + c
+  }
+}
+\end{chisel}
+\item Local functions have access to outer variables
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
 \end{itemize}
 \end{frame}
 
 
-
-
-\begin{frame}[fragile]{Regresssion Tests}
+\begin{frame}[fragile]{Regression Tests}
 \begin{itemize}
-\item But tests are collected over time
+\item Tests are collected over time
 \item When a bug is found, a test is written to reproduce this bug
 \item Collection of tests increases
 \item Runs every night to test for \emph{regression}
@@ -60,22 +212,36 @@ Embedded Systems Engineering}
 \end{itemize}
 \end{frame}
 
-
-
-
-\begin{frame}[fragile]{Lab Time: Hello World Testing}
+\begin{frame}[fragile]{Lab Time I: Write a ScalaTest}
 \begin{itemize}
-\item xxx
+\item Setup a Scala project with \code{build.sbt}
+\item ScalaTest: write a test suit to test \code{Int} that 2 + 3 = 5, and two more integer tests
+\item Maybe add a \code{Makefile}
 \end{itemize}
 \end{frame}
 
-
-
-\begin{frame}[fragile]{Summary}
+\begin{frame}[fragile]{Lab Time II: Test the accumulator}
 \begin{itemize}
-\item xxx
+\item ALU + register
+\item Exhaustive testing is not an option
+\item Corner cases plus random
 \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]{Lab Time III: CI with Travis}
+\begin{itemize}
+\item Create a repo on GitHub
+\item Add the ALU plus your tester
+\item Connect it with Travis
+\item you need a \code{.travis.yml}
+\item Look into the Chisel book source for an example
+\end{itemize}
+\end{frame}
+%\begin{frame}[fragile]{Summary}
+%\begin{itemize}
+%\item xxx
+%\end{itemize}
+%\end{frame}
 
 \end{document}
 

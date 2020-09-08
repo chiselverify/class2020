@@ -1,4 +1,12 @@
-# Lab 2: Testing an ALU with an accumulator register
+# Lab 2
+
+## ScalaTest
+
+Write a ScalaTest suit that tests some integer operations.
+E.g., that 3 + 2 = 5, and some more.
+
+
+## Test an ALU with an accumulator register
 
 The interface is:
 
@@ -14,6 +22,6 @@ abstract class AluAccu(size: Int) extends Module {
 }
 ```
 
-Write the test code without exploring the implementation.
+Write the test code without exploring the implementation too much.
 
 
