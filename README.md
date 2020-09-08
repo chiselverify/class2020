@@ -10,3 +10,7 @@ It will contain teaching material, such as slides, lab exercises, student presen
 _Principles of Functional Verification_ by A. Meyer - a good, easy-to-read introduction to functional verification without any code examples. Considers a lot of verification-related topics and practices at a high level with illustrating figures, but with few practical examples and only little actual "_theory_". Available from [Findit](https://findit.dtu.dk/en/catalog/2305333384).
 
 _Writing Testbenches - Functional Verification of HDL Models_ by J. Bergeron - a more in-depth overview of functional verification with examples in both Verilog and VHDL throughout the book. This book is more university textbook-like than the above, and despite the difference in language from the course, it still represents a good source. Available from [Findit](https://findit.dtu.dk/en/catalog/2441585752).
+
+_Fundamentals of Digital Logic with VHDL Desgin_ by S. Brown, Z. Vranesic. Chapter 11 offers techniques for making effective test sets using stuck-at models. These techniques includes identifying input combinations which will test the entire design using logic tables and sensitized paths. The chapter also makes remakrs of making designs for testiability and BISTs.
+
+_ASIC/SoC Functional Design Verification_ by A. B. Mehta. The book serves as a guide to technologies and methodologies of functional design verification, including UVM. Available from [Findit](https://findit.dtu.dk/en/catalog/2374482012).
