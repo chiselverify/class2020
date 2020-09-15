@@ -10,7 +10,7 @@ import chisel3.iotesters._
 import scala.util.Random.nextInt
 import scala.math.BigInt
 import scala.math.Numeric.BigIntIsIntegral.abs
-object Test{
+object Test2 {
   val size=32
 }
 class tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
@@ -41,7 +41,7 @@ class tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
       }
       println("s string is"+ s.toString)
       //val t= (1.U(65.W) << 63) - 1.U(65.W)
-      val t=scala.math.pow(2,Test.size).toLong
+      val t=scala.math.pow(2,Test2.size).toLong
       println("t is: " + t.toString)
       //println(x.toString)
 //      val p=  0 - abs(s).U(65.W).toFloat//.U(64.W) + 1.U(64.W)
@@ -75,7 +75,7 @@ class tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
 }
 
 object tester extends App {
-  chisel3.iotesters.Driver (() => new AluAccuChisel(Test.size)) { c =>
+  chisel3.iotesters.Driver (() => new AluAccuChisel(Test2.size)) { c =>
     new tester (c)
   }
 }
