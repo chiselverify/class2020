@@ -23,11 +23,45 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
         expect(dut.io.accu, 0)
     }
 
+    // Test the enable functionality of the AluAccu
+    def enableTest() = {
+        poke(dut.io.op, 6)
+        poke(dut.io.din, 1)
+        poke(dut.io.ena, true)
+        step(1)
+        poke(dut.io.op, 1)
+        poke(dut.io.din, 2)
+        poke(dut.io.ena, false)
+        step(1)
+        expect(dut.io.accu, 1)
+    }
+
+    // Test some corner cases of the accumulator input
+    def cornerTest() = {
+        val maxUint = (BigInt(1) << Test.size) - 1
+        // Relevant edge cases are 0 and max for UInt types
+        // Underflow
+        poke(dut.io.op, 6)
+        poke(dut.io.din, 0)
+        poke(dut.io.ena, true)
+        step(1)
+        poke(dut.io.op, 2)
+        poke(dut.io.din, 1)
+        step(1)
+        expect(dut.io.accu, func(2)(BigInt(0), BigInt(1)) & maxUint)
+
+        // Overflow
+        poke(dut.io.op, 1)
+        step(1)
+        expect(dut.io.accu, 0)
+    }
+
     // This function runs through the generated inputs and operations and
     // ensures their outputs are as expected
     def test(inputs: Array[BigInt], ops: Array[Int], results: Array[BigInt]) = {
         assert(inputs.length == ops.length)
         assert(ops.length == results.length, "test: all arrays must be the same length!")
+        poke(dut.io.ena, true)
         for (i <- 0 until results.length) {
             poke(dut.io.op, ops(i))
             poke(dut.io.din, inputs(i))
@@ -37,18 +71,18 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
     }
 
     // Depending on the operation to be performed, given as input, returns a
-    // function - (BigInt, BigInt) => BigInt - corresponding to that of the AluAccu
-    def func(op: Int) = {
+    // function corresponding to that of the AluAccu
+    def func(op: Int): (BigInt, BigInt) => BigInt = {
         op match {
-            case 0 => (a: BigInt, _: BigInt) => a
-            case 1 => (a: BigInt, b: BigInt) => a + b
-            case 2 => (a: BigInt, b: BigInt) => a - b
-            case 3 => (a: BigInt, b: BigInt) => a & b
-            case 4 => (a: BigInt, b: BigInt) => a | b
-            case 5 => (a: BigInt, b: BigInt) => a ^ b
-            case 6 => (_: BigInt, b: BigInt) => b
-            case 7 => (a: BigInt, _: BigInt) => a >> 1
-            case _ => (_: BigInt, _: BigInt) => BigInt(0)
+            case 0 => (a, _) => a
+            case 1 => (a, b) => a + b
+            case 2 => (a, b) => a - b
+            case 3 => (a, b) => a & b
+            case 4 => (a, b) => a | b
+            case 5 => (a, b) => a ^ b
+            case 6 => (_, b) => b
+            case 7 => (a, _) => a >> 1
+            case _ => (_, _) => BigInt(0)
         }
     }
 
@@ -67,7 +101,15 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
     // Reset the accumulator
     reset()
 
-    // Run through all the operations
+    // Test enable
+    enableTest()
+    reset()
+
+    // Test corner case inputs
+    cornerTest()
+    reset()
+
+    // Run through all the operations with random inputs
     test(inputs, ops, results)
 }
 
