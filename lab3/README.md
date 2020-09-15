@@ -45,8 +45,8 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 1
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Kishan
+ * Verification engineer: Niels
 
 ### Specification
 
@@ -54,8 +54,8 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 2
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Victor
+ * Verification engineer: Hans
 
 ### Specification
 
@@ -63,8 +63,8 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 3
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Niels
+ * Verification engineer: Victor
 
 ### Specification
 
@@ -72,8 +72,8 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 4
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Hans
+ * Verification engineer: Kishan
 
 ### Specification
 
