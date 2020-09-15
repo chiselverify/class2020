@@ -14,7 +14,6 @@ object Test{
   val size=32
 }
 class tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
-  reset = 0
   val r= scala.util.Random
   val l=List(Types.nop,Types.add,Types.sub,Types.and,Types.or,Types.xor,Types.ld,Types.shr)
   poke(dut.io.ena, 1)
