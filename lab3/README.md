@@ -52,12 +52,29 @@ abstract class AluAccu(size: Int) extends Module {
 
 ### Test plan
 
-## Design 2
+## Design 2 - registerfile
 
  * Design engineer: Victor
  * Verification engineer: Hans
 
 ### Specification
+  Configurationale bit width.
+  The registerfile has synchronus read/write.
+  
+  Interface:
+  ```scala
+  abstract class RegFile(addrWidth: Int, dataWidth: Int) extends Module {
+  val io = IO(new Bundle {
+    val regWrite = Input(Bool())
+    val registerRs1 = Input(UInt(addrWidth.W))
+    val data1 = Output(UInt(dataWidth.W))
+    val registerRs2 = Input(UInt(addrWidth.W))
+    val data2 = Output(UInt(dataWidth.W))
+    val registerRd = Input(UInt(addrWidth.W))
+    val writeData = Input(UInt(dataWidth.W))
+  }
+}
+```
 
 ### Test plan
 
