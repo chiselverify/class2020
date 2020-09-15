@@ -14,3 +14,5 @@ _Writing Testbenches - Functional Verification of HDL Models_ by J. Bergeron - a
 _Fundamentals of Digital Logic with VHDL Desgin_ by S. Brown, Z. Vranesic. Chapter 11 offers techniques for making effective test sets using stuck-at models. These techniques includes identifying input combinations which will test the entire design using logic tables and sensitized paths. The chapter also makes remarks of making designs for testiability and BISTs. Avaible from [Academia](https://www.academia.edu/6406951/Fundamentals_of_Digital_Logic_with_VHDL_Design).
 
 _ASIC/SoC Functional Design Verification_ by A. B. Mehta. The book serves as a guide to technologies and methodologies of functional design verification, including UVM. Available from [Findit](https://findit.dtu.dk/en/catalog/2374482012).
+
+_How to Choose verification methodology_ by R. Purisai. This article starts out with comparing Verification and validation(test). In part 1.3 the author describes various types of testing strategies, and talks about trends within the field of testing. In part 1.4 the author offers some ideas in terms of choosing the right verification methodology.
