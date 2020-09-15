@@ -8,11 +8,11 @@ import org.scalatest._
 // Select the operand size of the AluAccu under test and the number
 // of randomly generated inputs to test for
 object Test {
-    val size = 128
+    val sizes = List(16, 32, 64, 128)
     val numtests = 1024
 }
 
-class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
+class AluAccuTester(dut: AluAccuChisel, size: Int) extends PeekPokeTester(dut) {
     // This function runs a simple reset sequence to ensure the accumulator
     // is zeroed out before the tests
     def reset() = { // ld 0
@@ -38,7 +38,7 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
 
     // Test some corner cases of the accumulator input
     def cornerTest() = {
-        val maxUint = (BigInt(1) << Test.size) - 1
+        val maxUint = (BigInt(1) << size) - 1
         // Relevant edge cases are 0 and max for UInt types
         // Underflow
         poke(dut.io.op, 6)
@@ -66,7 +66,7 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
             poke(dut.io.op, ops(i))
             poke(dut.io.din, inputs(i))
             step(1)
-            expect(dut.io.accu, results(i).asUInt(Test.size.W), "Op " + ops(i) + " failed")
+            expect(dut.io.accu, results(i).asUInt(size.W), "Op " + ops(i) + " failed")
         }
     }
 
@@ -88,8 +88,8 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
 
     // Generate a bunch of random numbers
     val rng = new Random(12345678)
-    val mask = (BigInt(1) << Test.size) - 1
-    val inputs = Array.fill(Test.numtests)(BigInt.apply(Test.size, rng)).map(_ & mask)
+    val mask = (BigInt(1) << size) - 1
+    val inputs = Array.fill(Test.numtests)(BigInt.apply(size, rng)).map(_ & mask)
     val ops = Array.fill(Test.numtests)(rng.nextInt()).map(_ & 0x7)
     val results = inputs.zip(ops).foldLeft(Array[BigInt](0)) {
         (acc, tup) => 
@@ -114,15 +114,19 @@ class AluAccuTester(dut: AluAccuChisel) extends PeekPokeTester(dut) {
 }
 
 object AluAccuTester extends App {
-    chisel3.iotesters.Driver(() => new AluAccuChisel(Test.size)) {
-        c => new AluAccuTester(c)
+    for (size <- Test.sizes) {
+        chisel3.iotesters.Driver(() => new AluAccuChisel(size)) {
+            c => new AluAccuTester(c, size)
+        }
     }
 }
 
 class AluAccuSTester extends FlatSpec with Matchers {
-    Test.size + "-bit tester" should "pass" in {
-        chisel3.iotesters.Driver(() => new AluAccuChisel(Test.size)) {
-            c => new AluAccuTester(c)
-        } should be (true)
-    } 
+    for (size <- Test.sizes) {
+        size + "-bit tester" should "pass" in {
+            chisel3.iotesters.Driver(() => new AluAccuChisel(size)) {
+                c => new AluAccuTester(c, size)
+            } should be (true)
+        }
+    }
 }
