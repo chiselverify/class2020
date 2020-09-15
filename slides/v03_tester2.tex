@@ -18,10 +18,11 @@ Embedded Systems Engineering}
 \begin{frame}[fragile]{Overview}
 \begin{itemize}
 \item Kasper on UVM
+\item Discuss your tester solution
 \item ChiselTest
 \item Class hierarchy and testing
-\item Verilog and Verilator
 \item Mixed language testing
+\item Verilog and Verilator
 \item S4NOC
 \item Concurrent testing
 \item Lab: design and test in pairs
@@ -72,7 +73,7 @@ class Add extends Module {
 \end{chisel}
 \end{frame}
 
-\begin{frame}[fragile]{\emph{Old} iotester}
+\begin{frame}[fragile]{\emph{Old} \code{PeekPokeTester}}
 \begin{chisel}
 class AddTester(dut: Add) extends PeekPokeTester(dut) {
 
@@ -96,6 +97,7 @@ object AddTester extends App {
 \begin{frame}[fragile]{ChiselTest the Adder}
 \begin{chisel}
 class AddNewTester extends FlatSpec with ChiselScalatestTester with Matchers {
+
   behavior of "Adder with Testers2"
 
   it should "test addition" in {
@@ -178,7 +180,7 @@ import org.scalatest._
 \begin{frame}[fragile]{Lab Time + Home Work}
 \begin{itemize}
 \item Work in pairs
-\item One design engineers, the other verification engineer
+\item One design engineer, the other verification engineer
 \item Switch role an team
 \item Specify together the design and make a test plan
 \item Do not aim for a too complicated design

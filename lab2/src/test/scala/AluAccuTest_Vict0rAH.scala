@@ -7,10 +7,10 @@ import scala.util._
 class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
   var i = 0
   var j = 0
-  var temp = 0.U
+  var temp = BigInt(0)
   val test = 1024
   //Generating random numbers
-  var r = new Random(2^32)
+  var rgen = new Random(2^32)
 
   //Corner cases
   val corner = Array(2^16, -(2^16), 0, -1, 256)
@@ -29,6 +29,7 @@ class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
   //Testing corner cases
   for (j <- 1 to 6){
     for (i <- 0 until corner.length){
+      val r = rgen.nextInt()
       poke(dut.io.op, j)
       poke(dut.io.din, corner(i))
       step(1)
@@ -39,9 +40,9 @@ class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
           expect(dut.io.accu, corner(i) + r)
         }
         is(2) {
-          when(dut.io.accu - dut.io.din < 0){
+          if (dut.io.accu - dut.io.din < BigInt(0)){
             expect((2^32) - (dut.io.din - dut.io.accu))
-          } .otherwise {
+          } else {
             expect(dut.io.accu, corner(i) - r)
           }
         }
@@ -83,7 +84,9 @@ class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
   }
   //Testing AND function
   for (i <- 0 to test) {
-    temp = dut.io.accu
+    val r = rgen.nextInt()
+
+    temp = peek(dut.io.accu)
     poke(dut.io.op, 3)
     poke(dut.io.din, r)
     step(1)
@@ -92,7 +95,9 @@ class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
 
   //Testing OR function
   for (i <- 0 to test) {
-    temp = dut.io.accu
+    val r = rgen.nextInt()
+
+    temp = peek(dut.io.accu)
     poke(dut.io.op, 3)
     poke(dut.io.din, r)
     step(1)
@@ -101,7 +106,9 @@ class AluAccuTest(dut: AluAccuChisel) extends PeekPokeTester(dut) {
 
   //Testing XOR function
   for (i <- 0 to test) {
-    temp = dut.io.accu
+    val r = rgen.nextInt()
+
+    temp = peek(dut.io.accu)
     poke(dut.io.op, 3)
     poke(dut.io.din, r)
     step(1)
