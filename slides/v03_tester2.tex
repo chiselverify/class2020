@@ -32,60 +32,147 @@ Embedded Systems Engineering}
 \begin{itemize}
 \item New testing framework
 \item Long called ``tester2''
-\item abc
-\item abc
-\item abc
-\item abc
+\item Developed by Richard Lin at UCB
+\item Still in beta
+\item Will be the fully supported testing framework for Chisel
+\item see: \url{https://github.com/ucb-bar/chisel-testers2}
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Title}
+\begin{frame}[fragile]{ChiselTest}
 \begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
+\item Core operations: \code{peek}, \code{poke}, \code{expect}
+\item Similar to iotester
+\item Inverted syntax
 \begin{itemize}
-\item abc
+\item Instead of \code{poke(port, value)}
+\item use \code{port.poke(value)}
+\end{itemize}
+\item Values are Chisel literals (not \code{BigInt})
+\item Based on ScalaTest
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Code}
+\begin{frame}[fragile]{Example DUT}
 \begin{chisel}
-xxx
+class Add extends Module {
+  val io = IO(new Bundle {
+    val a = Input(UInt(width = 8))
+    val b = Input(UInt(width = 8))
+    val c = Output(UInt(width = 8))
+  })
+
+  val reg = RegInit(UInt(0, width = 8))
+  reg := io.a + io.b
+
+  io.c := reg
+}
 \end{chisel}
 \end{frame}
+
+\begin{frame}[fragile]{\emph{Old} iotester}
+\begin{chisel}
+class AddTester(dut: Add) extends PeekPokeTester(dut) {
+
+  for (a <- 0 to 2) {
+    for (b <- 0 to 3) {
+      val result = a + b
+      poke(dut.io.a, a)
+      poke(dut.io.b, b)
+      step(1)
+      expect(dut.io.c, result)
+    }
+  }
+}
+
+object AddTester extends App {
+  iotesters.Driver.execute(Array[String](), () => new Add()) { c => new AddTester(c) }
+}
+\end{chisel}
+\end{frame}
+
+\begin{frame}[fragile]{ChiselTest the Adder}
+\begin{chisel}
+class AddNewTester extends FlatSpec with ChiselScalatestTester with Matchers {
+  behavior of "Adder with Testers2"
+
+  it should "test addition" in {
+    test(new Add()) { c =>
+      for (a <- 0 to 2) {
+        for (b <- 0 to 3) {
+          val result = a + b
+          c.io.a.poke(a.U)
+          c.io.b.poke(b.U)
+          c.clock.step(1)
+          c.io.c.expect(result.U)
+        }
+      }
+    }
+  }
+}
+\end{chisel}
+\end{frame}
+
+
+\begin{frame}[fragile]{Using ChiselTest}
+\begin{itemize}
+\item Define in \code{build.sbt} (both testers)
+\end{itemize}
+\begin{chisel}
+libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.4.2"
+libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.2.2"
+\end{chisel}
+\begin{itemize}
+\item Chisel and ScalaTest come as a dependency of chiseltest
+\item No need to specify, easier with version numbers
+\item Import additional packages
+\end{itemize}
+\begin{chisel}
+import chiseltest._
+import org.scalatest._
+\end{chisel}
+\end{frame}
+
+\begin{frame}[fragile]{More Examples}
+\begin{itemize}
+\item Show code examples: NITester, NetworkCompare, NocTester
+\item Code is in \url{https://github.com/schoeberl/soc-comm}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Test Different Implementations}
+\begin{itemize}
+\item Modules need to extend a base class
+\item Test code expects the base class
+\item Need to use some generic magic
+\item Show code in \code{chisel\_uvm} project
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mixed Language Testing}
+\begin{itemize}
+\item Black box for Verilog code
+\item Test backend using Verilator
+\item There are two (three) tester backends: Treadle, Verilator, and Synopsis VCS
+\item Show code in \code{chisel\_uvm} project
+\item Code is in \url{https://github.com/chisel-uvm/chisel-uvm}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Concurrent Testing}
+\begin{itemize}
+\item Threaded concurrency with \code{fork} and \code{join}
+\item Needed for more complex testing
+\item E.g., Model several masters on a shared bus
+\item Concurrency is implicit in VHDL or Verilog
+\item Wass added with ChiselTest to Chisel
+\item Show example: NetworkTester
+\item Code is in \url{https://github.com/schoeberl/soc-comm}
+\end{itemize}
+\end{frame}
+
 
 
 \begin{frame}[fragile]{Lab Time + Home Work}
@@ -102,8 +189,13 @@ xxx
 
 \begin{frame}[fragile]{Design Examples}
 \begin{itemize}
-\item    * Example designs: ALU, Accu, programmable counter, FIFO, FSM, FSMD, UART tx or rx
-
+\item Accu
+\item programmable counter
+\item FIFO
+\item FSM
+\item FSMD
+\item UART tx or rx
+\item Feel free to chose your own ideas
 \end{itemize}
 \end{frame}
 %\begin{frame}[fragile]{Summary}
@@ -118,4 +210,10 @@ xxx
 \begin{itemize}
 \item abc
 \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code}
+\begin{chisel}
+xxx
+\end{chisel}
 \end{frame}
