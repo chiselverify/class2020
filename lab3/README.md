@@ -45,26 +45,46 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 1
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Kishan
+ * Verification engineer: Niels
 
 ### Specification
 
 ### Test plan
 
-## Design 2
+## Design 2 - Register file
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Victor
+ * Verification engineer: Hans
 
 ### Specification
+  Configurationale bit width.
+  The register file has synchronous read/write.
+  
+  Interface:
+  ```scala
+  abstract class RegFile(addrWidth: Int, dataWidth: Int) extends Module {
+  val io = IO(new Bundle {
+    val regWrite = Input(Bool())
+    val registerRs1 = Input(UInt(addrWidth.W))
+    val data1 = Output(UInt(dataWidth.W))
+    val registerRs2 = Input(UInt(addrWidth.W))
+    val data2 = Output(UInt(dataWidth.W))
+    val registerRd = Input(UInt(addrWidth.W))
+    val writeData = Input(UInt(dataWidth.W))
+  })
+}
+```
 
 ### Test plan
+ * Test writing to location zero doesn't change the register file
+ * Test reading and writing from all other register locations
+ * Test reading from the port being currently written to
 
 ## Design 3
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Niels
+ * Verification engineer: Victor
 
 ### Specification
 
@@ -72,8 +92,8 @@ abstract class AluAccu(size: Int) extends Module {
 
 ## Design 4
 
- * Design engineer:
- * Verification engineer:
+ * Design engineer: Hans
+ * Verification engineer: Kishan
 
 ### Specification
 

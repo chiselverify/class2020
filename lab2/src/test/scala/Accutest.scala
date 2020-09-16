@@ -5,20 +5,22 @@ import org.scalatest._
 
 class AccuTest(dut: AluAccuChisel)extends PeekPokeTester(dut) {
 
-/*
-    poke(dut.io.ena, 1)
-    poke(dut.io.din, w)
-    poke(dut.io.op, nop)
-  step(1)
-    expect(dut.io.accu, 0)
-    poke(dut.io.din, w)
-    poke(dut.io.op, add)
+  poke(dut.io.ena, 1)
+
+  /*
+      poke(dut.io.ena, 1)
+      poke(dut.io.din, w)
+      poke(dut.io.op, nop)
     step(1)
-    poke(dut.io.din, 6)
-    poke(dut.io.op, add)
-  }
-  step(1)
-    expect(dut.io.accu, 10) */
+      expect(dut.io.accu, 0)
+      poke(dut.io.din, w)
+      poke(dut.io.op, add)
+      step(1)
+      poke(dut.io.din, 6)
+      poke(dut.io.op, add)
+    }
+    step(1)
+      expect(dut.io.accu, 10) */
 
 
 
