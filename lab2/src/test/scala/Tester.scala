@@ -108,7 +108,7 @@ class Tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
       case 6 => i_din
       case 7 => output >> 1
     }
-    println("Maximum value is: " + t.toString)
+    //println("Maximum value is: " + t.toString)
     //val t= (1.U(65.W) << 63) - 1.U(65.W)
     //val t=scala.math.pow(2,Test2.size).toLong
     if (s < 0) {
