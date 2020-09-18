@@ -13,9 +13,13 @@ import scala.math.Numeric.BigIntIsIntegral.abs
 
 object Test2{
   println("Bit Size: ")
-  val size = scala.io.StdIn.readLine.toInt
+  val size:Int = scala.io.StdIn.readLine.toInt
   println("Number of Tests: ")
-  val n_tests= scala.io.StdIn.readLine.toInt
+  val n_tests:Int= scala.io.StdIn.readLine.toInt
+  def maxval(): Int = {
+    if (size>31){Int.MaxValue}
+    else{(1 << size) - 1 }
+  }
 }
 
 
@@ -64,14 +68,23 @@ class Tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
   val l=List(Types.nop,Types.add,Types.sub,Types.and,Types.or,Types.xor,Types.ld,Types.shr)
   //Always enabled
   poke(dut.io.ena, 1)
+  reset(1)
+  reset(0)
   for (i <- 0 until Test2.n_tests){
     println("Test " + i.toString)
-
+    //Maximum value for the respective type of bits
+    val max_val:BigInt=(BigInt(1) << Test2.size) - BigInt(1)
+    println("max val is is :" + max_val.toString)
+//    if(Test2.size > 31) { val o = Int.MaxValue
+//    println("Test2>31 path "+ o.toString)}
+//    else{val o = (1 << Test2.size) - (1)
+//    println("Test<31 path "+o.toString)}
+//    println("max input(t) is:  "+o.toString)
+    val o = Test2.maxval()
     //Random operation gen
     val op: Int = r.nextInt(7)
-
     //Random Input gen
-    val i_din:BigInt = din.nextInt(Int.MaxValue)
+    val i_din:BigInt = din.nextInt(o)
     println("Input is: " + i_din.toString)
     poke(dut.io.din,i_din)
     poke(dut.io.op,l(op))
@@ -95,14 +108,12 @@ class Tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
       case 6 => i_din
       case 7 => output >> 1
     }
+    println("Maximum value is: " + t.toString)
     //val t= (1.U(65.W) << 63) - 1.U(65.W)
     //val t=scala.math.pow(2,Test2.size).toLong
-
-    //Maximum value for the respective type of bits
-    val t:BigInt = (BigInt(1) << Test2.size)
-    println("Maximum value of operations: " + t.toString)
     if (s < 0) {
-      val r = t - abs(s)
+      println("s is <0 path: "+ s.toString)
+      val r = max_val - abs(s) + 1
       println("Calculated value of output is: " + r.toString)
       if(expect(dut.io.accu,r)){
         println("Test " + i.toString +" Passed\n\n")
@@ -110,8 +121,9 @@ class Tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
       }
     }
     else{
-      if (s >= t){
-        val q = s - t
+      if (s > max_val){
+        println("s is >max path: "+ s.toString)
+        val q = s - max_val -1
         println("Calculated value of output is: " + q.toString)
         if(expect(dut.io.accu,q)){
           count+=1
@@ -119,6 +131,7 @@ class Tester (dut: AluAccuChisel) extends PeekPokeTester(dut){
         }
       }
       else{
+        println("s is none path: "+ s.toString)
         println("Calculated value of operation is: " + s.toString)
         if(expect(dut.io.accu,s)){
           count+=1
