@@ -58,23 +58,23 @@ abstract class AluAccu(size: Int) extends Module {
  * Verification engineer: Hans
 
 ### Specification
-  Configurationale bit width.
+  Configurable bit width.
   The register file has synchronous read/write.
   
   Interface:
   ```scala
   abstract class RegFile(addrWidth: Int, dataWidth: Int) extends Module {
-  val io = IO(new Bundle {
-    val regWrite = Input(Bool())
-    val registerRs1 = Input(UInt(addrWidth.W))
-    val data1 = Output(UInt(dataWidth.W))
-    val registerRs2 = Input(UInt(addrWidth.W))
-    val data2 = Output(UInt(dataWidth.W))
-    val registerRd = Input(UInt(addrWidth.W))
-    val writeData = Input(UInt(dataWidth.W))
-  })
-}
-```
+    val io = IO(new Bundle {
+      val regWrite = Input(Bool())
+      val registerRs1 = Input(UInt(addrWidth.W))
+      val data1 = Output(UInt(dataWidth.W))
+      val registerRs2 = Input(UInt(addrWidth.W))
+      val data2 = Output(UInt(dataWidth.W))
+      val registerRd = Input(UInt(addrWidth.W))
+      val writeData = Input(UInt(dataWidth.W))
+    })
+  }
+  ```
 
 ### Test plan
  * Test writing to location zero doesn't change the register file
@@ -90,13 +90,37 @@ abstract class AluAccu(size: Int) extends Module {
 
 ### Test plan
 
-## Design 4
+## Design 4 - LIFO queue
 
  * Design engineer: Hans
  * Verification engineer: Kishan
 
 ### Specification
+  Hardware implementation of a stack.
+  Configurable bit width and queue size.
+  Queue ignores pop when empty and push when full.
 
+  Interface:
+  ```scala
+  class ProdIO(dataWidth: Int) extends Bundle {
+    val push = Input(Bool())
+    val din = Input(UInt(dataWidth.W))
+    val full = Output(Bool())
+  }
+
+  class ConsIO(dataWidth: Int) extends Bundle {
+    val pop = Input(Bool())
+    val dout = Output(UInt(dataWidth.W))
+    val empty = Output(Bool())
+  }
+
+  abstract class Queue(size: Int, dataWidth: Int) extends Module {
+    val io = IO(new Bundle {
+        val enq = new ProdIO(dataWidth)
+        val deq = new ConsIO(dataWidth)
+    })
+  }
+  ```
 ### Test plan
 
 

@@ -1,6 +1,6 @@
 SBT = sbt
 
-en-test:
+enable and reset-test:
 	sbt "test:runMain ena_tester"
 
 
