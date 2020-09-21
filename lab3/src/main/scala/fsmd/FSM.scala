@@ -1,4 +1,4 @@
-package FSMD
+package fsmd
 import chisel3._
 
 class FSM(size :Int) extends Module {

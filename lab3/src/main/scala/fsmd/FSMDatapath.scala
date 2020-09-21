@@ -1,9 +1,9 @@
-package FSMD
+package fsmd
 import chisel3._
 import chisel3.util._
 
 // a/b or a*b format
-case class FSMDatapath(size: Int) extends Module {
+class FSMDatapath(size: Int) extends Module {
   val io = IO(new Bundle {
     val a = Input(UInt(size.W))
     val b = Input(UInt(size.W))
@@ -39,5 +39,5 @@ case class FSMDatapath(size: Int) extends Module {
 }
 object DatapathMain extends App {
   println("Generating the Processor hardware")
-  chisel3.Driver.execute(Array("--target-dir", "generated"), () => new FSMD.FSMDatapath(16))
+  chisel3.Driver.execute(Array("--target-dir", "generated"), () => new fsmd.FSMDatapath(16))
 }
