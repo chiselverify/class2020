@@ -131,6 +131,7 @@ abstract class AluAccu(size: Int) extends Module {
 
   abstract class Queue(size: Int, dataWidth: Int) extends Module {
     val io = IO(new Bundle {
+        val flush = Input(Bool())
         val enq = new ProdIO(dataWidth)
         val deq = new ConsIO(dataWidth)
     })
