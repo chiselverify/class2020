@@ -95,5 +95,5 @@ class FSM(size :Int) extends Module {
 }
 object FSMMain extends App {
   println("Generating the Processor hardware")
-  chisel3.Driver.execute(Array("--target-dir", "generated"), () => new FSMD.FSM(16))
+  chisel3.Driver.execute(Array("--target-dir", "generated"), () => new fsmd.FSM(16))
 }
