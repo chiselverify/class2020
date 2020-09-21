@@ -43,13 +43,28 @@ abstract class AluAccu(size: Int) extends Module {
  * Test different bit width, at least 16 and 32 bits
 
 
-## Design 1
+## Design 1 - Iterative Multiplier(FSM + Datapath)
 
  * Design engineer: Kishan
  * Verification engineer: Niels
 
 ### Specification
-
+  Configurable bit width multplier.
+  The Product and the Multiplier are obtained as clocked outputs.
+  The multiplier takes 'multiplier' number of clock cycles to produce the appropriate product.
+  
+  Interface:
+  ```scala
+  abstract class FSMDatapath(size: Int) extends Module {
+  val io = IO(new Bundle {
+    val a = Input(UInt(size.W))
+    val b = Input(UInt(size.W))
+    val op = Input(Bool()) // 0 for multiplication
+    val output1 = Output(UInt((2*size).W))//product
+    val output2 = Output(UInt((2*size).W))//b
+    val done = Output(Bool())
+  })
+  ```
 ### Test plan
 
 ## Design 2 - Register file
