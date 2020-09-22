@@ -67,6 +67,12 @@ abstract class AluAccu(size: Int) extends Module {
   ```
 ### Test plan
 
+test for overflow
+test the reset
+function test with random number inputs
+
+Update: use donesignal to step instead of i-equivalent input.
+
 ## Design 2 - Register file
 
  * Design engineer: Victor
