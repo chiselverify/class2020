@@ -81,6 +81,8 @@ Update: use donesignal to step instead of i-equivalent input.
 ### Specification
   Configurable bit width.
   The register file has synchronous read/write.
+  Register location zero is a constant zero.
+  Read through write outputs the written data.
   
   Interface:
   ```scala
