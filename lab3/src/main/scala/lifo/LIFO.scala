@@ -1,3 +1,5 @@
+
+
 import chisel3._
 import chisel3.util._
 
@@ -42,7 +44,6 @@ class LIFO(size: Int, dataWidth: Int) extends Queue(size, dataWidth) {
             }
         }
     }
-
     io.enq.full := stateReg === full
     io.deq.empty := stateReg === empty
     io.deq.dout := Mux(stateReg =/= empty, queue(ptr), 0.U)
