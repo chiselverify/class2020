@@ -67,6 +67,12 @@ abstract class AluAccu(size: Int) extends Module {
   ```
 ### Test plan
 
+test for overflow
+test the reset
+function test with random number inputs
+
+Update: use donesignal to step instead of i-equivalent input.
+
 ## Design 2 - Register file
 
  * Design engineer: Victor
@@ -75,6 +81,8 @@ abstract class AluAccu(size: Int) extends Module {
 ### Specification
   Configurable bit width.
   The register file has synchronous read/write.
+  Register location zero is a constant zero.
+  Read through write outputs the written data.
   
   Interface:
   ```scala
@@ -131,6 +139,7 @@ abstract class AluAccu(size: Int) extends Module {
 
   abstract class Queue(size: Int, dataWidth: Int) extends Module {
     val io = IO(new Bundle {
+        val flush = Input(Bool())
         val enq = new ProdIO(dataWidth)
         val deq = new ConsIO(dataWidth)
     })

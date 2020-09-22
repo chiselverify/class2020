@@ -21,7 +21,10 @@ class LIFO(size: Int, dataWidth: Int) extends Queue(size, dataWidth) {
             }
         }
         is (filling) {
-            when (io.deq.pop && io.enq.push) {
+            when (io.flush) {
+                ptr := 0.U
+                stateReg := empty
+            } .elsewhen (io.deq.pop && io.enq.push) {
                 queue(ptr) := io.enq.din
             } .elsewhen (io.deq.pop) {
                 when (ptr === 0.U) {
@@ -38,7 +41,10 @@ class LIFO(size: Int, dataWidth: Int) extends Queue(size, dataWidth) {
             }
         }
         is (full) {
-            when (io.deq.pop) {
+            when (io.flush) {
+                ptr := 0.U
+                stateReg := empty
+            } .elsewhen (io.deq.pop) {
                 ptr := ptr - 1.U
                 stateReg := filling
             }

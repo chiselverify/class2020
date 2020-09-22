@@ -17,14 +17,25 @@ Embedded Systems Engineering}
 
 \begin{frame}[fragile]{Overview}
 \begin{itemize}
-\item Discuss your design and test
+\item Discuss your designs and tests
 \item ChiselTest
 \item Class hierarchy and testing
 \item Mixed language testing
 \item Verilog and Verilator
 \item S4NOC
 \item Concurrent testing
-\item Lab: TBD, probably some concurrent testing (maybe a FIFO?)
+\item Lab: some concurrent testing of a FIFO
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Literature}
+\begin{itemize}
+\item We searched for some literature
+\item I browsed your suggestions and a few more
+\item No really good textbook, some are simply bad
+\item Following was the best, but a bit dated (no UVM)
+\item \emph{Writing Testbenches - Functional Verification of HDL Models, J. Bergeron}
+\item Get the 2003 edition
 \end{itemize}
 \end{frame}
 
@@ -174,12 +185,31 @@ import org.scalatest._
 \end{itemize}
 \end{frame}
 
-
-
-\begin{frame}[fragile]{Lab Time + Home Work}
+\begin{frame}[fragile]{Lab Time}
 \begin{itemize}
-\item xxx
+\item Write a concurrent tester for a bubble FIFO
+\item First define some test criteria (in ScalaTest strings)
+\item To avoid name collisions, use your name in the test class
+\end{itemize}
+\end{frame}
 
+\begin{frame}[fragile]{Home Work}
+\begin{itemize}
+\item Read up on a topic
+\item Anything related to testing and verification
+\item Give a 15' presentation on it next week
+\item Following list is just possible examples
+\begin{itemize}
+\item Test coverage (Hans)
+\item Testing in SW
+\item Agile development and TDD
+\item Test categories (in SW, in HW)
+\item Testing in open-source projects
+\item Available test infrastructure (e.g., AXI transactions)
+\item Testing a processor, e.g., what is Rocket doing?
+\item Testing of Chisel itself
+\item Your idea/interest
+\end{itemize}
 \end{itemize}
 \end{frame}
 
