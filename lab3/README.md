@@ -110,6 +110,7 @@ Update: use donesignal to step instead of i-equivalent input.
  * Verification engineer: Victor
 
 ### Specification
+Popcounter with FSM, takes a bit string and counts how many 1's it contains.
 
 ### Test plan
 
