@@ -33,7 +33,7 @@ class MartinTester extends FlatSpec with ChiselScalatestTester with Matchers {
   }
 
   it should "find yourself 3 more test cases to test" in {
-    assert(true,"finished impl")//throw new Error("Missing tests")
+    assert(1>2,"finished impl")//throw new Error("Missing tests")
   }
 
 }
