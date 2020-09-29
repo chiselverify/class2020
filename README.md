@@ -16,3 +16,7 @@ _Fundamentals of Digital Logic with VHDL Desgin_ by S. Brown, Z. Vranesic. Chapt
 _ASIC/SoC Functional Design Verification_ by A. B. Mehta. The book serves as a guide to technologies and methodologies of functional design verification, including UVM. Available from [Findit](https://findit.dtu.dk/en/catalog/2374482012).
 
 _How to Choose verification methodology_ by R. Purisai. This article starts out by comparing Verification and validation(test). In part 1.3 the author describes various types of testing strategies, and talks about trends within the field of testing. In part 1.4 the author offers some ideas in terms of choosing the right verification methodology.
+
+Slides for Test Driven Development (TDD) presentation - https://docs.google.com/presentation/d/1VsoGNBGK07tDa9BOLWquPULzBzX6JDiC7RQ5Qk_W2d4/edit?usp=sharing
+
+Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38XyhBOi8_PNTjz58XGI_g-Bg_CBW1UXpour94/edit?usp=sharing
