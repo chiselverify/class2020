@@ -112,6 +112,27 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
       dut => {
         val enq = dut.io.enq
         val deq = dut.io.deq
+        
+        /* First find the sequential read out latency of the queue */
+        enq.din.poke(1.U)
+        enq.write.poke(true.B)
+        deq.read.poke(false.B)
+        for (i <- 0 until 2)
+          do dut.clock.step() while (enq.full.peek.litValue == 1)
+        enq.write.poke(false.B)
+        while (deq.empty.peek.litValue == 1) dut.clock.step()
+        deq.dout.expect(1.U)
+        deq.read.poke(true.B)
+        var count = 0
+        do {
+          dut.clock.step()
+          count += 1
+        } while (deq.empty.peek.litValue == 1)
+        deq.dout.expect(1.U)
+        dut.clock.step()
+        println("Latency is " + count + " cycles")
+
+        /* Now perform the actual test using the result from above */
         // Add one entry to the FIFO
         enq.din.poke(42.U)
         enq.write.poke(true.B)
@@ -130,7 +151,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         // Bubbles should be squashed by now; read out entries one after another
         deq.dout.expect(42.U)
         deq.read.poke(true.B)
-        do dut.clock.step() while (deq.empty.peek.litValue == 1)
+        dut.clock.step(count)
         deq.dout.expect(13.U)
       }
     }
