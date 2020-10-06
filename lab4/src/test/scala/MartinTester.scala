@@ -16,21 +16,24 @@ class MartinTester extends FlatSpec with ChiselScalatestTester with Matchers {
       dut => {
         dut.io.enq.din.poke(123.U)
         dut.clock.step()
+        dut.reset.poke(0.B)
         dut.io.deq.empty.expect(true.B)
       }
     }
   }
 
   it should "be empty after reset" in {
-    // TODO
+
+
   }
+
 
   it should "signal when full" in {
     assert(false, "not yet implemented")
   }
 
   it should "find yourself 3 more test cases to test" in {
-    throw new Error("Missing tests")
+    assert(1>2,"finished impl")//throw new Error("Missing tests")
   }
 
 }
