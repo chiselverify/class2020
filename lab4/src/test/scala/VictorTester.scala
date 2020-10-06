@@ -170,4 +170,30 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
       }
     }
   }
+
+  it should "ignore bubbles" in {
+    test(new BubbleFifo(32, 4)) {
+      dut => {
+        val enq = dut.io.enq
+        val deq = dut.io.deq
+        val bubbleQueue = List(2.U, 0.U, 0.U, 5.U)
+
+        for (i <- 0 until 4) {
+          enq.write.poke(true.B)
+          enq.din.poke(bubbleQueue(i))
+          dut.clock.step(1)
+          enq.write.poke(false.B)
+          while (deq.empty.peek.litValue == 1){
+            dut.clock.step(1)
+          }
+
+          if (deq.dout.peek.litValue != 0) {
+            deq.dout.expect(bubbleQueue(i))
+            deq.read.poke(true.B)
+            dut.clock.step(1)
+          }
+        }
+      }
+    }
+  }
 }
