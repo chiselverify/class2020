@@ -1,5 +1,6 @@
 import chisel3._
 import chiseltest._
+import scala.util.Random
 import org.scalatest._
 
 /**
@@ -20,19 +21,20 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
   it should "move data from input to output" in {
     test(new BubbleFifo(32, 4)) {
       dut => {
+        val randNum = new Random(65541891).nextInt(429467295)
         val enq = dut.io.enq
         val deq = dut.io.deq
 
         enq.write.poke(true.B)
         deq.read.poke(false.B)
-        enq.din.poke(123.U)
+        enq.din.poke(randNum.U)
         dut.clock.step(1)
         enq.write.poke(false.B)
         
         while (deq.empty.peek.litValue == 1) {
           dut.clock.step(1)
         }
-        deq.dout.expect(123.U)
+        deq.dout.expect(randNum.U)
       }
     }
   }
@@ -52,13 +54,15 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
   it should "signal when full" in {
     test(new BubbleFifo(32, 4)) {
       dut => {
+        val randNum = new Random(65541891).nextInt(429467295)
         val enq = dut.io.enq
         val deq = dut.io.deq
 
+        //Pokes a random number, and steps until full is high
         enq.write.poke(true.B)
         deq.read.poke(false.B)
+        dut.io.enq.din.poke(randNum.U)
         while (enq.full.peek.litValue == 0){
-          dut.io.enq.din.poke(1.U)
           dut.clock.step(1)
         }
         dut.io.enq.full.expect(true.B)
@@ -71,12 +75,13 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
       dut => {
         val enq = dut.io.enq
         val deq = dut.io.deq
-        val order = Vector(1.U, 2.U, 3.U, 4.U)
+        val randArray = Array.fill(4) {new Random(65541891).nextInt(429467295)}
         
-        def writer() {
+        // Function fills dataReg with a queue of random numbers
+        def sender() {
           for (i <- 0 until 4) {
             enq.write.poke(true.B)
-            enq.din.poke(order(i))
+            enq.din.poke(randArray(i).U)
             dut.clock.step(1)
             enq.write.poke(false.B)
             while (enq.full.peek.litValue == 1){
@@ -85,22 +90,23 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
           }
         }
 
-        def reader() {
+        // Function reads the queue of random numbers
+        def receiver() {
           for (i <- 0 until 4) {
             deq.read.poke(false.B)
             while(deq.empty.peek.litValue == 1){
               dut.clock.step(1)
             }
-            deq.dout.expect(order(i))
+            deq.dout.expect(randArray(i).U)
             deq.read.poke(true.B)
             dut.clock.step(1)
           }
         }
 
         fork {
-          writer()
+          sender()
         }
-        reader()
+        receiver()
 
       }
     }
@@ -142,16 +148,25 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
       dut => {
         val enq = dut.io.enq
         val deq = dut.io.deq
+        val randArray = Array.fill(2) {new Random(65541891).nextInt(429467295)}
 
         enq.write.poke(true.B)
         deq.read.poke(false.B)
-        enq.din.poke(4.U)
-        dut.clock.step(1)
-        enq.din.poke(8.U)
+        enq.din.poke(randArray(0).U)
         while (deq.empty.peek.litValue == 1) {
           dut.clock.step(1)
         }
-        deq.dout.expect(4.U)
+        // Pokes new data to full array
+        enq.din.poke(randArray(1).U)
+        dut.clock.step(1)
+        enq.write.poke(false.B)
+        deq.dout.expect(randArray(0).U)
+        deq.read.poke(true.B)
+        // Since data was poked to full array, it is expected to be lost, and
+        // an expected output is zero
+        dut.clock.step(1)
+        deq.read.poke(false.B)
+        deq.dout.expect(0.U)
       }
     }
   }
