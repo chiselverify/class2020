@@ -22,12 +22,12 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     a [Exception] should be thrownBy {new BubbleFifo(0, 5) } 
   }
 
-    it should "be empty on initialization" in {
+    it should "be notReady on initialization" in {
     test(new BubbleFifo(32, 5)) {
       dut => {
         for (i <- 0 until 100) {
           dut.clock.step()
-          dut.io.deq.empty.expect(true.B, "Value was added to the queue without setting write.")
+          dut.io.deq.notReady.expect(true.B, "Value was added to the queue without setting write.")
         }
       }
     }
@@ -42,7 +42,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
 
         for (i <- 0 until 100) {
           dut.clock.step()
-          dut.io.deq.empty.expect(true.B, "Value was added to the queue without setting write.")
+          dut.io.deq.notReady.expect(true.B, "Value was added to the queue without setting write.")
         }
       }
     }
@@ -62,7 +62,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
         var dequedItems = 0
         for (i <- 0 until 100) {
           dut.clock.step()
-          if (dut.io.deq.empty.peek().litValue().intValue() == 0) {
+          if (dut.io.deq.notReady.peek().litValue().intValue() == 0) {
             dequedItems += 1
             dut.io.deq.dout.expect(37.U, "Queue gave an incorrect value.")
           }
@@ -73,26 +73,26 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "signal when it's full and empty" in {
+  it should "signal when it's full and notReady" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         dut.io.enq.din.poke(37.U)
         dut.io.enq.write.poke(true.B)
         dut.io.enq.busy.expect(false.B)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
 
         dut.clock.step()
         dut.io.enq.busy.expect(true.B)
-        dut.io.deq.empty.expect(false.B)
+        dut.io.deq.notReady.expect(false.B)
         dut.clock.step()
         dut.io.enq.busy.expect(true.B)
-        dut.io.deq.empty.expect(false.B)
+        dut.io.deq.notReady.expect(false.B)
 
         dut.io.deq.read.poke(true.B)
         dut.io.deq.dout.expect(37.U)
         dut.clock.step()
         dut.io.enq.busy.expect(false.B)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
 
       }
     }
@@ -129,7 +129,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
       val read = rng.nextBoolean()
       queue.io.deq.read.poke(read.B)
 
-      if(read && queue.io.deq.empty.peek().litValue().intValue() == 0) {
+      if(read && queue.io.deq.notReady.peek().litValue().intValue() == 0) {
         assert(!expectedOut.isEmpty, "Queue contains item but none was put into the queue.")
 
         val expected = expectedOut.dequeue();
@@ -147,7 +147,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     queue.io.deq.read.poke(true.B)
     for (i <- 0 until 100) {
       queue.clock.step()
-      queue.io.deq.empty.expect(true.B, "Expected queue to be empty but it was not.")
+      queue.io.deq.notReady.expect(true.B, "Expected queue to be notReady but it was not.")
     }
   }
 
