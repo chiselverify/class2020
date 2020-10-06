@@ -171,7 +171,6 @@ class FlushResetTester(dut : LIFO) extends PeekPokeTester(dut){
   expect(dut.io.deq.dout,7)
   step(1)
   //Contents of LIFO Queue (4,5,6,7<--ptr...)
-  //Beginning of Flush
 
   poke(dut.io.flush,1)
   poke(dut.io.deq.pop,0)
@@ -188,7 +187,6 @@ class FlushResetTester(dut : LIFO) extends PeekPokeTester(dut){
   expect(dut.io.deq.dout,0)
   expect(dut.io.deq.empty,1)
   println("Flush empty, empty signal is: " + peek(dut.io.deq.dout))
-  println("---Flush and Reset Test ---")
 }
 
 
@@ -196,7 +194,7 @@ class FlushResetTester(dut : LIFO) extends PeekPokeTester(dut){
 //Flush and Reset Test
 
 object FlushResetTester extends App {
-  chisel3.iotesters.Driver(() => new LIFO(TestVec.size,TestVec.bwidth)) { c =>
+  chisel3.iotesters.Driver(() => new LIFO(4,16)) { c =>
     new FlushResetTester (c)
   }
 }
@@ -208,7 +206,76 @@ class FlushResetTesters extends FlatSpec with Matchers {
     } should be (true)
   }
 }
+//Throughput Test
+class ThroughputTest(dut : LIFO) extends PeekPokeTester(dut){
+  // Poke stream LIFOQueue() <-- 4,5,6,7
+  poke(dut.io.flush,0)
+  poke(dut.io.deq.pop,0)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,4)
+  step(1)
+  poke(dut.io.deq.pop,0)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,5)
+  step(1)
+  poke(dut.io.deq.pop,0)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,6)
+  step(1)
+  poke(dut.io.deq.pop,0)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,7)
+  step(1)
+  poke(dut.io.deq.pop,1)
+  poke(dut.io.enq.push,0)
+  println("Flush output value: " + peek(dut.io.deq.dout))
+  expect(dut.io.deq.dout,7)
+  step(1)
+  //Contents of LIFO Queue (4,5,6,7<--ptr...)
+  //Beginning of Flush
 
+  poke(dut.io.flush,0)
+  poke(dut.io.deq.pop,1)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,10)
+  expect(dut.io.deq.dout,6)
+  step(1)
+  poke(dut.io.flush,0)
+  poke(dut.io.deq.pop,1)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,9)
+  expect(dut.io.deq.dout,10)
+  step(1)
+  poke(dut.io.flush,0)
+  poke(dut.io.deq.pop,1)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,8)
+  expect(dut.io.deq.dout,9)
+  step(1)
+  poke(dut.io.flush,0)
+  poke(dut.io.deq.pop,1)
+  poke(dut.io.enq.push,1)
+  poke(dut.io.enq.din,7)
+  expect(dut.io.deq.dout,8)
+}
+
+
+
+//Flush and Reset Test
+
+object ThroughputTest extends App {
+  chisel3.iotesters.Driver(() => new LIFO(TestVec.size,TestVec.bwidth)) { c =>
+    new ThroughputTest (c)
+  }
+}
+
+class ThroughputTests extends FlatSpec with Matchers {
+  TestVec.size + "-bit " + TestVec.bwidth + " width Throughput Test "  should "pass" in {
+    chisel3.iotesters.Driver(() => new LIFO(TestVec.size,TestVec.bwidth)) {
+      c => new ThroughputTest(c)
+    } should be (true)
+  }
+}
 //All Tests: (1) Full and Empty Test (2)  Functionality Tester (3) Flush and Reset Test
 
 class AllTest extends FlatSpec with Matchers {
@@ -225,6 +292,11 @@ class AllTest extends FlatSpec with Matchers {
   TestVec.size + "-bit " + TestVec.bwidth + " Flush and Reset Test "  should "pass" in {
     chisel3.iotesters.Driver(() => new LIFO(TestVec.size,TestVec.bwidth)) {
       c => new FlushResetTester(c)
+    } should be (true)
+  }
+  TestVec.size + "-bit " + TestVec.bwidth + " width Throughput Test "  should "pass" in {
+    chisel3.iotesters.Driver(() => new LIFO(TestVec.size,TestVec.bwidth)) {
+      c => new ThroughputTest(c)
     } should be (true)
   }
 }
