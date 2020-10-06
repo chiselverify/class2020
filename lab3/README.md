@@ -147,6 +147,10 @@ Popcounter with FSM, takes a bit string and counts how many 1's it contains.
   }
   ```
 ### Test plan
+* Test Empty and Full signals
+* Test functionality of Flush Signal
+* Test functionality of LIFO
+* Test Writing and Reading at the same cycle
 
 
 
