@@ -151,7 +151,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "correctly queue 10 elements" in {
+  it should "correctly queue 10 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -165,7 +165,49 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "fail because it expects 10 values but only dequeues 9" in {
+  it should "correctly queue 10 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -178,7 +220,46 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "correctly queue 1000 elements" in {
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -192,8 +273,92 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "correctly queue 10000 elements" in {
+  it should "correctly queue 1000 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
       dut => {
         val queue = Queue[Int]()
 
