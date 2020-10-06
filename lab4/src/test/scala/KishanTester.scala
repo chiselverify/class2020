@@ -81,7 +81,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(1.B)
+        dut.io.enq.busy.expect(1.B)
         for (j <- 0 until (Test_param.depth)) {
           inp.write.poke(0.B)
           op.read.poke(1.B)
@@ -108,7 +108,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(1.B)
+        dut.io.enq.busy.expect(1.B)
         //8 bit so max value is 255
         for (j <- 0 until 4) {
           inp.write.poke(0.B)
@@ -135,7 +135,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
             inp.din.poke(j.U)
             inp.write.poke(1.B)
             op.read.poke(0.B)
-            println("Full is " + inp.full.peek)
+            println("Full is " + inp.busy.peek)
             //if(j==1) dut.clock.step(2*(Test_param.depth - 1))
             dut.clock.step(1)
             i = i + 1

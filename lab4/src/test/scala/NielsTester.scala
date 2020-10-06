@@ -17,7 +17,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.io.enq.din.poke(rand.U)
           dut.clock.step(1)
         }
-          dut.io.enq.full.expect(true.B)
+          dut.io.enq.busy.expect(true.B)
       }
     }
   }
@@ -35,7 +35,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
         //dut.io.deq.read.poke(true.B)
         dut.io.enq.write.poke(false.B)
         dut.io.deq.read.poke(true.B)
-        while(dut.io.enq.full.peek == 1) {
+        while(dut.io.enq.busy.peek == 1) {
           dut.io.deq.dout.expect(w.U)
           dut.clock.step(2)
         }
@@ -66,7 +66,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.io.enq.din.poke(w.U)
           dut.clock.step(2)
         }
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
         dut.io.enq.din.poke(5.U)
         dut.clock.step(1)
         //dut.io.enq.full.expect(true.B) //This made the test fail
@@ -93,7 +93,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.io.enq.din.poke(2.U)
         dut.io.enq.write.poke(false.B)
         dut.io.deq.read.poke(true.B)
-        while(dut.io.enq.full.peek.litValue == 1) {
+        while(dut.io.enq.busy.peek.litValue == 1) {
           dut.clock.step(2)
         }
         dut.clock.step(1)
@@ -115,7 +115,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
            dut.io.enq.din.poke(w.U)
            dut.clock.step(1)
            dut.io.enq.write.poke(false.B)
-           while(dut.io.enq.full.peek.litValue() == 1) {
+           while(dut.io.enq.busy.peek.litValue() == 1) {
              dut.clock.step(1)
            }
          }

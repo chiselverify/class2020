@@ -62,10 +62,10 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         deq.read.poke(false.B)
         dut.io.enq.din.poke(randNum.U)
-        while (enq.full.peek.litValue == 0){
+        while (enq.busy.peek.litValue == 0){
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
       }
     }
   }
@@ -84,7 +84,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
             enq.din.poke(randArray(i).U)
             dut.clock.step(1)
             enq.write.poke(false.B)
-            while (enq.full.peek.litValue == 1){
+            while (enq.busy.peek.litValue == 1){
               dut.clock.step(1)
             }
           }
@@ -134,7 +134,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
 
           deq.read.poke(true.B)
           dut.clock.step(1)
-          while (enq.full.peek.litValue == 1) {
+          while (enq.busy.peek.litValue == 1) {
             dut.clock.step(1)
           }
           deq.dout.expect(0.U)

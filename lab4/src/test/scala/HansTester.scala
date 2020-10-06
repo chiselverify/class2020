@@ -48,7 +48,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         for (elem <- nums) {
           enq.din.poke(elem.U)
-          do dut.clock.step() while (enq.full.peek.litValue == 1)
+          do dut.clock.step() while (enq.busy.peek.litValue == 1)
         }
         enq.din.poke(mask.U)
         dut.clock.step()
@@ -78,7 +78,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.clock.step()
         deq.empty.expect(true.B)
         deq.dout.expect(0.U)
-        enq.full.expect(false.B)
+        enq.busy.expect(false.B)
       }
     }
   }
@@ -93,9 +93,9 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         deq.read.poke(false.B)
         enq.write.poke(true.B)
         enq.din.poke(1.U)
-        while (deq.dout.peek.litValue == 0 || enq.full.peek.litValue == 0)
+        while (deq.dout.peek.litValue == 0 || enq.busy.peek.litValue == 0)
           dut.clock.step()
-        enq.full.expect(true.B)
+        enq.busy.expect(true.B)
         // Empty out the FIFO
         enq.write.poke(false.B)
         deq.read.poke(true.B)
@@ -118,7 +118,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         deq.read.poke(false.B)
         for (i <- 0 until 2)
-          do dut.clock.step() while (enq.full.peek.litValue == 1)
+          do dut.clock.step() while (enq.busy.peek.litValue == 1)
         enq.write.poke(false.B)
         while (deq.empty.peek.litValue == 1) dut.clock.step()
         deq.dout.expect(1.U)
@@ -174,7 +174,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
             enq.din.poke(input.U)
             enq.write.poke(false.B)
             do dut.clock.step() while (rng.nextInt(10) < 7)
-            while (enq.full.peek.litValue == 1) dut.clock.step()
+            while (enq.busy.peek.litValue == 1) dut.clock.step()
             enq.write.poke(true.B)
             dut.clock.step()
           }

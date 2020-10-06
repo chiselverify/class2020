@@ -78,20 +78,20 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
       dut => {
         dut.io.enq.din.poke(37.U)
         dut.io.enq.write.poke(true.B)
-        dut.io.enq.full.expect(false.B)
+        dut.io.enq.busy.expect(false.B)
         dut.io.deq.empty.expect(true.B)
 
         dut.clock.step()
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
         dut.io.deq.empty.expect(false.B)
         dut.clock.step()
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
         dut.io.deq.empty.expect(false.B)
 
         dut.io.deq.read.poke(true.B)
         dut.io.deq.dout.expect(37.U)
         dut.clock.step()
-        dut.io.enq.full.expect(false.B)
+        dut.io.enq.busy.expect(false.B)
         dut.io.deq.empty.expect(true.B)
 
       }
@@ -110,7 +110,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
       queue.io.enq.write.poke(write.B)
 
       if(write &&
-         queue.io.enq.full.peek().litValue().intValue() == 0) {
+         queue.io.enq.busy.peek().litValue().intValue() == 0) {
           expectedOut.enqueue(toEnqueue)
           enqueuedCount += 1
       }
