@@ -1,0 +1,165 @@
+\input{slides_common}
+
+\newif\ifbook
+\input{../shared/chisel}
+
+\title{Verification of Digital Designs: Week 6}
+\author{Martin Schoeberl}
+\date{\today}
+\institute{Technical University of Denmark\\
+Embedded Systems Engineering}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Overview}
+\begin{itemize}
+\item Constraint random
+\item Processor testing
+\item Lab: some concurrent testing of a FIFO
+\item Projet topics
+\item Code review of your designs and tests
+\item There is a 2006 version of the book available
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{(Constraint) Random}
+\begin{itemize}
+\item We cannot exhaustive test a design
+\item Pick corner cases
+\item Use random values
+\item Constraints build limits on the random values
+\item We do not yet have a constraint random solver in Chisel
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Co-simulation}
+\begin{itemize}
+\item Have a reference model in software
+\item C/C++ is common
+\item Some of you did it as part of the AluAccu tester
+\item Then run the hardware and the model on corner cases, random data
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Testing a Processor}
+\begin{itemize}
+\item Write self testing programs
+\item With a known outcome
+\item E.g., return 0
+\item Show in Lipsi
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Reference Model}
+\begin{itemize}
+\item Implement an instruction set simulator
+\item Not timing correct
+\item No pipeline
+\item Just a big case statement
+\item Some of you have/had it as project in CAE
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Processor Co-simulation}
+\begin{itemize}
+\item Run the ISA simulator and the hardware in parallel
+\item Execute test programs
+\item Compare the results
+\item What would you compare in a RISC-V ISA?
+\item How can you handle timing difference?
+\item Show in Lipsi
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code Review}
+\begin{itemize}
+\item A static verification tool
+\item Identify functional and code errors
+\item Performed by peers
+\item Not to criticize the developer
+\item To share knowledge
+\item Code reviews have been commonly used in SW development
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code Review}
+\begin{itemize}
+\item Can be part of pull requests
+\item Each code has to have a review before accepting
+\item Motivates committers to tie up loose ends
+\item Common practice in open-source project
+\item E.g., it is public in Chisel and very friendly
+\item Maybe watch the Chisel project for some time
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Project Work}
+\begin{itemize}
+\item Read up on a topic
+\item Anything related to testing and verification
+\item Implement the project
+\item Write a paper style report
+\item Give a 15' presentation in the last week
+\begin{itemize}
+\item Constraint random generator
+\item Processor co-simulation (use your RISC-V simulator)
+\item Cover points in Chisel
+\item Assertions, including time (see book, p 64)
+\item Test coverage at FIRRTL level
+\item Create test infrastructure (e.g., AXI transactions)
+% \item Testing a processor, e.g., what is Rocket doing?
+\item Your idea/interest
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code Review Time}
+\begin{itemize}
+\item Andreas labs ready?
+\item Three more designs on lab3
+\item Solutions for lab4
+\end{itemize}
+\end{frame}
+%\begin{frame}[fragile]{Summary}
+%\begin{itemize}
+%\item xxx
+%\end{itemize}
+%\end{frame}
+
+\end{document}
+
+\begin{frame}[fragile]{Title}
+\begin{itemize}
+\item abc
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code}
+\begin{chisel}
+xxx
+\end{chisel}
+\end{frame}
