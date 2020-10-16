@@ -63,7 +63,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.reset.poke(0.B)
         dut.clock.step(1)
         //-----------Emtpy Signal Poke Test----------
-        op.empty.expect(1.B)
+        op.notReady.expect(1.B)
       }
     }
   }
@@ -81,7 +81,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(1.B)
+        dut.io.enq.busy.expect(1.B)
         for (j <- 0 until (Test_param.depth)) {
           inp.write.poke(0.B)
           op.read.poke(1.B)
@@ -89,7 +89,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        op.empty.expect(1.B)
+        op.notReady.expect(1.B)
       }
     }
   }
@@ -108,7 +108,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(1.B)
+        dut.io.enq.busy.expect(1.B)
         //8 bit so max value is 255
         for (j <- 0 until 4) {
           inp.write.poke(0.B)
@@ -117,7 +117,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.clock.step(1)
           dut.clock.step(1)
         }
-        op.empty.expect(1.B)
+        op.notReady.expect(1.B)
       }
     }
   }
@@ -135,12 +135,12 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
             inp.din.poke(j.U)
             inp.write.poke(1.B)
             op.read.poke(0.B)
-            println("Full is " + inp.full.peek)
+            println("Full is " + inp.busy.peek)
             //if(j==1) dut.clock.step(2*(Test_param.depth - 1))
             dut.clock.step(1)
             i = i + 1
             println(i)
-            println("Empty is " + op.empty.peek)
+            println("Empty is " + op.notReady.peek)
           }
           if(Test_param.depth % 2 == 0 && i<Test_param.depth-1){
             inp.write.poke(0.B)
@@ -153,7 +153,7 @@ class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
           else {
             //val expval = j.U - Test_param.depth.U
             //op.dout.expect()
-            //op.empty.expect(1.B)
+            //op.notReady.expect(1.B)
             if (Test_param.depth % 2 == 0 && i == Test_param.depth - 1) {
               inp.write.poke(0.B)
               inp.din.poke(j.U)

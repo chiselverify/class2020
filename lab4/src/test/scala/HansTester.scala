@@ -28,7 +28,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.din.poke(testData)
         dut.clock.step()
         enq.write.poke(false.B)
-        do dut.clock.step() while (deq.empty.peek.litValue == 1)
+        do dut.clock.step() while (deq.notReady.peek.litValue == 1)
         deq.dout.expect(testData)
       }
     }
@@ -48,7 +48,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         for (elem <- nums) {
           enq.din.poke(elem.U)
-          do dut.clock.step() while (enq.full.peek.litValue == 1)
+          do dut.clock.step() while (enq.busy.peek.litValue == 1)
         }
         enq.din.poke(mask.U)
         dut.clock.step()
@@ -57,7 +57,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(false.B)
         for (elem <- nums) {
           deq.dout.expect(elem.U)
-          do dut.clock.step() while (deq.empty.peek.litValue == 1)
+          do dut.clock.step() while (deq.notReady.peek.litValue == 1)
         }
         deq.dout.expect(mask.U)
       }
@@ -65,7 +65,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
   }
 
   // Check that reset empties the queue
-  it should "be empty after reset" in {
+  it should "be notReady after reset" in {
     test(new BubbleFifo(Test.width, Test.depth)) {
       dut => {
         val enq = dut.io.enq
@@ -76,15 +76,15 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.din.poke(0.U)
         deq.read.poke(false.B)
         dut.clock.step()
-        deq.empty.expect(true.B)
+        deq.notReady.expect(true.B)
         deq.dout.expect(0.U)
-        enq.full.expect(false.B)
+        enq.busy.expect(false.B)
       }
     }
   }
 
   // Fill up the FIFO and check that it signals being full correctly
-  it should "signal when full and empty" in {
+  it should "signal when full and notReady" in {
     test(new BubbleFifo(Test.width, Test.depth)) {
       dut => {
         val enq = dut.io.enq
@@ -93,15 +93,15 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         deq.read.poke(false.B)
         enq.write.poke(true.B)
         enq.din.poke(1.U)
-        while (deq.dout.peek.litValue == 0 || enq.full.peek.litValue == 0)
+        while (deq.dout.peek.litValue == 0 || enq.busy.peek.litValue == 0)
           dut.clock.step()
-        enq.full.expect(true.B)
+        enq.busy.expect(true.B)
         // Empty out the FIFO
         enq.write.poke(false.B)
         deq.read.poke(true.B)
-        while (deq.dout.peek.litValue != 0 || deq.empty.peek.litValue == 0)
+        while (deq.dout.peek.litValue != 0 || deq.notReady.peek.litValue == 0)
           dut.clock.step()
-        deq.empty.expect(true.B)
+        deq.notReady.expect(true.B)
       }
     }
   }
@@ -118,16 +118,16 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         deq.read.poke(false.B)
         for (i <- 0 until 2)
-          do dut.clock.step() while (enq.full.peek.litValue == 1)
+          do dut.clock.step() while (enq.busy.peek.litValue == 1)
         enq.write.poke(false.B)
-        while (deq.empty.peek.litValue == 1) dut.clock.step()
+        while (deq.notReady.peek.litValue == 1) dut.clock.step()
         deq.dout.expect(1.U)
         deq.read.poke(true.B)
         var count = 0
         do {
           dut.clock.step()
           count += 1
-        } while (deq.empty.peek.litValue == 1)
+        } while (deq.notReady.peek.litValue == 1)
         deq.dout.expect(1.U)
         dut.clock.step()
         println("Latency is " + count + " cycles")
@@ -174,7 +174,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
             enq.din.poke(input.U)
             enq.write.poke(false.B)
             do dut.clock.step() while (rng.nextInt(10) < 7)
-            while (enq.full.peek.litValue == 1) dut.clock.step()
+            while (enq.busy.peek.litValue == 1) dut.clock.step()
             enq.write.poke(true.B)
             dut.clock.step()
           }
@@ -186,7 +186,7 @@ class HansTester extends FlatSpec with ChiselScalatestTester with Matchers {
             // Read a number from the queue in a random cycle
             deq.read.poke(false.B)
             do dut.clock.step() while (!rng.nextBoolean())
-            while (deq.empty.peek.litValue == 1) dut.clock.step()
+            while (deq.notReady.peek.litValue == 1) dut.clock.step()
             deq.dout.expect(input.U)
             deq.read.poke(true.B)
             dut.clock.step()

@@ -113,6 +113,9 @@ Update: use donesignal to step instead of i-equivalent input.
 Popcounter with FSM, takes a bit string and counts how many 1's it contains.
 
 ### Test plan
+ * Test functionality of the circuit
+ * Test expected behaviour from boolean signals
+ * Test corner cases and random inputs
 
 ## Design 4 - LIFO queue
 
