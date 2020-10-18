@@ -9,12 +9,12 @@ class PopCounterDP(BW: Int) extends Module {
   val io = IO(new Bundle {
     val din = Input(UInt(BW.W))
     val load = Input(Bool())
-    val popCnt = Output(UInt(4.W))
+    val popCnt = Output(UInt(BW.W))
     val done = Output(Bool())
   })
   val dataReg = RegInit(0.U(BW.W))
   val popCntReg = RegInit(0.U(BW.W))
-  val counterReg = RegInit(0.U(4.W))
+  val counterReg = RegInit(0.U(BW.W))
 
   //dataReg := dataReg(BW-1,1) >> 1 //removes the least significant bit and concatinates with a 0 on the most significant bit
   dataReg := 0.U ## dataReg(BW-1,1)
