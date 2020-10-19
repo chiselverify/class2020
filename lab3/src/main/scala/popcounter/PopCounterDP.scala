@@ -27,7 +27,7 @@ class PopCounterDP(BW: Int) extends Module {
   when(io.load) {
     dataReg := io.din
     popCntReg := 0.U
-    counterReg := 8.U
+    counterReg := BW.U
   }
 
   io.popCnt := popCntReg
