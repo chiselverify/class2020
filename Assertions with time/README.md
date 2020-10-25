@@ -10,7 +10,9 @@ which has to go high as well within a time limit. If this doesn't happen the ass
 ## Litterature
 
 "Writing testbenches using SystemVerilog" - Janick Bergeron
+
 "Principles of function verification" - Andreas Meyer
+
 https://www.scalatest.org/user_guide/using_assertions
 https://www.chipverify.com/systemverilog/systemverilog-assertions-time-delay
 https://verificationguide.com/systemverilog/systemverilog-assertions/
