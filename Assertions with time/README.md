@@ -9,6 +9,8 @@ which has to go high as well within a time limit. If this doesn't happen the ass
 
 TimeAssert(signal a, signal b, Amount of clocksteps)
 
+Immidiate and concurrent assertions?
+
 ## Litterature
 
 "Writing testbenches using SystemVerilog" - Janick Bergeron
