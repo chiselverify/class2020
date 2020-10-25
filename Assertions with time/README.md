@@ -1,8 +1,8 @@
-#Assertions with Timing
+# Assertions with Timing
 This project sets out to introduce a way to make assertions which are timedependent, when working with testing in chisel.
 
-##Documentation
+## Documentation
 
-##Litterature
+## Litterature
 
-##TO DO
+## TO DO
