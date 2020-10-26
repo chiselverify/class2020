@@ -1,5 +1,3 @@
-
-
 import chisel3._
 
 class ProdIO(dataWidth: Int) extends Bundle {

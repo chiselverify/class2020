@@ -22,12 +22,12 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     a [Exception] should be thrownBy {new BubbleFifo(0, 5) } 
   }
 
-    it should "be empty on initialization" in {
+    it should "be notReady on initialization" in {
     test(new BubbleFifo(32, 5)) {
       dut => {
         for (i <- 0 until 100) {
           dut.clock.step()
-          dut.io.deq.empty.expect(true.B, "Value was added to the queue without setting write.")
+          dut.io.deq.notReady.expect(true.B, "Value was added to the queue without setting write.")
         }
       }
     }
@@ -42,7 +42,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
 
         for (i <- 0 until 100) {
           dut.clock.step()
-          dut.io.deq.empty.expect(true.B, "Value was added to the queue without setting write.")
+          dut.io.deq.notReady.expect(true.B, "Value was added to the queue without setting write.")
         }
       }
     }
@@ -62,7 +62,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
         var dequedItems = 0
         for (i <- 0 until 100) {
           dut.clock.step()
-          if (dut.io.deq.empty.peek().litValue().intValue() == 0) {
+          if (dut.io.deq.notReady.peek().litValue().intValue() == 0) {
             dequedItems += 1
             dut.io.deq.dout.expect(37.U, "Queue gave an incorrect value.")
           }
@@ -73,26 +73,26 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "signal when it's full and empty" in {
+  it should "signal when it's full and notReady" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         dut.io.enq.din.poke(37.U)
         dut.io.enq.write.poke(true.B)
-        dut.io.enq.full.expect(false.B)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.enq.busy.expect(false.B)
+        dut.io.deq.notReady.expect(true.B)
 
         dut.clock.step()
-        dut.io.enq.full.expect(true.B)
-        dut.io.deq.empty.expect(false.B)
+        dut.io.enq.busy.expect(true.B)
+        dut.io.deq.notReady.expect(false.B)
         dut.clock.step()
-        dut.io.enq.full.expect(true.B)
-        dut.io.deq.empty.expect(false.B)
+        dut.io.enq.busy.expect(true.B)
+        dut.io.deq.notReady.expect(false.B)
 
         dut.io.deq.read.poke(true.B)
         dut.io.deq.dout.expect(37.U)
         dut.clock.step()
-        dut.io.enq.full.expect(false.B)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.enq.busy.expect(false.B)
+        dut.io.deq.notReady.expect(true.B)
 
       }
     }
@@ -110,7 +110,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
       queue.io.enq.write.poke(write.B)
 
       if(write &&
-         queue.io.enq.full.peek().litValue().intValue() == 0) {
+         queue.io.enq.busy.peek().litValue().intValue() == 0) {
           expectedOut.enqueue(toEnqueue)
           enqueuedCount += 1
       }
@@ -129,7 +129,7 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
       val read = rng.nextBoolean()
       queue.io.deq.read.poke(read.B)
 
-      if(read && queue.io.deq.empty.peek().litValue().intValue() == 0) {
+      if(read && queue.io.deq.notReady.peek().litValue().intValue() == 0) {
         assert(!expectedOut.isEmpty, "Queue contains item but none was put into the queue.")
 
         val expected = expectedOut.dequeue();
@@ -147,11 +147,11 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     queue.io.deq.read.poke(true.B)
     for (i <- 0 until 100) {
       queue.clock.step()
-      queue.io.deq.empty.expect(true.B, "Expected queue to be empty but it was not.")
+      queue.io.deq.notReady.expect(true.B, "Expected queue to be notReady but it was not.")
     }
   }
 
-  it should "correctly queue 10 elements" in {
+  it should "correctly queue 10 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -165,7 +165,49 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "fail because it expects 10 values but only dequeues 9" in {
+  it should "correctly queue 10 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        val deq = fork { randomDequeue(dut, queue, 10) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -178,7 +220,46 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "correctly queue 1000 elements" in {
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "fail because it expects 10 values but only dequeues 9 with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10) }
+        a [Exception] should be thrownBy { randomDequeue(dut, queue, 9) }
+
+        enq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
       dut => {
         val queue = Queue[Int]()
@@ -192,8 +273,92 @@ class AndreasTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "correctly queue 10000 elements" in {
+  it should "correctly queue 1000 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 1000 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 1000) }
+        val deq = fork { randomDequeue(dut, queue, 1000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 1" in {
     test(new BubbleFifo(32, 1)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 2" in {
+    test(new BubbleFifo(32, 2)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 7" in {
+    test(new BubbleFifo(32, 7)) {
+      dut => {
+        val queue = Queue[Int]()
+
+        val enq = fork { randomEnqueue(dut, queue, 10000) }
+        val deq = fork { randomDequeue(dut, queue, 10000) }
+
+        enq.join()
+        deq.join()
+      }
+    }
+  }
+
+  it should "correctly queue 10000 elements with queue size of 100" in {
+    test(new BubbleFifo(32, 100)) {
       dut => {
         val queue = Queue[Int]()
 

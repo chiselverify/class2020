@@ -19,16 +19,16 @@ Embedded Systems Engineering}
 \begin{itemize}
 \item Constraint random
 \item Processor testing
-\item Lab: some concurrent testing of a FIFO
 \item Projet topics
 \item Code review of your designs and tests
 \item There is a 2006 version of the book available
+\item In two weeks we have a guest lecture from a verification company
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{(Constraint) Random}
 \begin{itemize}
-\item We cannot exhaustive test a design
+\item Usually, we cannot exhaustive test a design
 \item Pick corner cases
 \item Use random values
 \item Constraints build limits on the random values
@@ -50,6 +50,8 @@ Embedded Systems Engineering}
 \item Write self testing programs
 \item With a known outcome
 \item E.g., return 0
+\item With a C compiler there are many test available
+\item We run nightly tests on Patmos with gcc torture, show email
 \item Show in Lipsi
 \end{itemize}
 \end{frame}
@@ -72,25 +74,7 @@ Embedded Systems Engineering}
 \item Compare the results
 \item What would you compare in a RISC-V ISA?
 \item How can you handle timing difference?
-\item Show in Lipsi
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Title}
-\begin{itemize}
-\item abc
+\item Talk on Patmos and show in Lipsi
 \end{itemize}
 \end{frame}
 
@@ -101,6 +85,8 @@ Embedded Systems Engineering}
 \item Performed by peers
 \item Not to criticize the developer
 \item To share knowledge
+\item To have a consistent coding style
+\item For better readable code
 \item Code reviews have been commonly used in SW development
 \end{itemize}
 \end{frame}
@@ -108,10 +94,10 @@ Embedded Systems Engineering}
 \begin{frame}[fragile]{Code Review}
 \begin{itemize}
 \item Can be part of pull requests
-\item Each code has to have a review before accepting
+\item Each pull request has to have a review before accepting it
 \item Motivates committers to tie up loose ends
-\item Common practice in open-source project
-\item E.g., it is public in Chisel and very friendly
+\item Common practice in open-source projects
+\item E.g., it is public in the Chisel development and very friendly
 \item Maybe watch the Chisel project for some time
 \end{itemize}
 \end{frame}
@@ -124,6 +110,13 @@ Embedded Systems Engineering}
 \item Implement the project
 \item Write a paper style report
 \item Give a 15' presentation in the last week
+\item Add your project title to the README.md
+\item Start a folder in our repo for your project
+\item Put a README.md into your folder
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Project Topics}
 \begin{itemize}
 \item Constraint random generator
 \item Processor co-simulation (use your RISC-V simulator)
@@ -133,7 +126,6 @@ Embedded Systems Engineering}
 \item Create test infrastructure (e.g., AXI transactions)
 % \item Testing a processor, e.g., what is Rocket doing?
 \item Your idea/interest
-\end{itemize}
 \end{itemize}
 \end{frame}
 

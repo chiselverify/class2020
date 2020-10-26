@@ -8,7 +8,7 @@ import org.scalatest._
   *
   * Testplan:
   * Moves data from input to output
-  * Reset should result in an empty register
+  * Reset should result in an notReady register
   * Signals when full
   * Concurrent write and read of data
   * Corner cases
@@ -31,7 +31,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.clock.step(1)
         enq.write.poke(false.B)
         
-        while (deq.empty.peek.litValue == 1) {
+        while (deq.notReady.peek.litValue == 1) {
           dut.clock.step(1)
         }
         deq.dout.expect(randNum.U)
@@ -39,14 +39,14 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
     }
   }
 
-  it should "be empty after reset" in {
+  it should "be notReady after reset" in {
     test(new BubbleFifo(32, 4)) {
       dut => {
         dut.reset.poke(true.B)
         dut.clock.step(1)
         dut.reset.poke(false.B)
         dut.clock.step(1)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
       }
     }
   }
@@ -62,10 +62,10 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         deq.read.poke(false.B)
         dut.io.enq.din.poke(randNum.U)
-        while (enq.full.peek.litValue == 0){
+        while (enq.busy.peek.litValue == 0){
           dut.clock.step(1)
         }
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
       }
     }
   }
@@ -84,7 +84,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
             enq.din.poke(randArray(i).U)
             dut.clock.step(1)
             enq.write.poke(false.B)
-            while (enq.full.peek.litValue == 1){
+            while (enq.busy.peek.litValue == 1){
               dut.clock.step(1)
             }
           }
@@ -94,7 +94,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
         def receiver() {
           for (i <- 0 until 4) {
             deq.read.poke(false.B)
-            while(deq.empty.peek.litValue == 1){
+            while(deq.notReady.peek.litValue == 1){
               dut.clock.step(1)
             }
             deq.dout.expect(randArray(i).U)
@@ -127,14 +127,14 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
           enq.din.poke(corner(i))
           dut.clock.step(1)
           enq.write.poke(false.B)
-          while (deq.empty.peek.litValue == 1) {
+          while (deq.notReady.peek.litValue == 1) {
             dut.clock.step(1)
           }
           deq.dout.expect(corner(i))
 
           deq.read.poke(true.B)
           dut.clock.step(1)
-          while (enq.full.peek.litValue == 1) {
+          while (enq.busy.peek.litValue == 1) {
             dut.clock.step(1)
           }
           deq.dout.expect(0.U)
@@ -153,7 +153,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
         enq.write.poke(true.B)
         deq.read.poke(false.B)
         enq.din.poke(randArray(0).U)
-        while (deq.empty.peek.litValue == 1) {
+        while (deq.notReady.peek.litValue == 1) {
           dut.clock.step(1)
         }
         // Pokes new data to full array
@@ -183,7 +183,7 @@ class VictorTester extends FlatSpec with ChiselScalatestTester with Matchers {
           enq.din.poke(bubbleQueue(i))
           dut.clock.step(1)
           enq.write.poke(false.B)
-          while (deq.empty.peek.litValue == 1){
+          while (deq.notReady.peek.litValue == 1){
             dut.clock.step(1)
           }
 

@@ -17,12 +17,12 @@ class MartinTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.io.enq.din.poke(123.U)
         dut.clock.step()
         dut.reset.poke(0.B)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
       }
     }
   }
 
-  it should "be empty after reset" in {
+  it should "be notReady after reset" in {
 
 
   }

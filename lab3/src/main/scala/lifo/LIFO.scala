@@ -1,34 +1,32 @@
-
-
 import chisel3._
 import chisel3.util._
 
 class LIFO(size: Int, dataWidth: Int) extends Queue(size, dataWidth) {
     // An asynchronous read memory is used for storage here
     val queue = Mem(size, UInt(dataWidth.W))
-    val ptr = RegInit(0.U(log2Ceil(size+1).W))
+    val ptr = RegInit(0.U(log2Up(size).W))
     
     // Definition of the states for the LIFO
-    val empty :: filling :: full :: Nil = Enum(3)
-    val stateReg = RegInit(empty)
+    val empty :: nonempty :: full :: Nil = Enum(3)
+    val state = RegInit(empty)
     
     // The operation of the LIFO is defined below
-    switch (stateReg) {
+    switch (state) {
         is (empty) {
             when (io.enq.push) {
                 queue(ptr) := io.enq.din
-                stateReg := filling
+                state := nonempty
             }
         }
-        is (filling) {
+        is (nonempty) {
             when (io.flush) {
                 ptr := 0.U
-                stateReg := empty
+                state := empty
             } .elsewhen (io.deq.pop && io.enq.push) {
                 queue(ptr) := io.enq.din
             } .elsewhen (io.deq.pop) {
                 when (ptr === 0.U) {
-                    stateReg := empty
+                    state := empty
                 } .otherwise {
                     ptr := ptr - 1.U
                 }
@@ -36,21 +34,21 @@ class LIFO(size: Int, dataWidth: Int) extends Queue(size, dataWidth) {
                 queue(ptr + 1.U) := io.enq.din
                 ptr := ptr + 1.U
                 when (ptr + 1.U === (size - 1).U) {
-                    stateReg := full
+                    state := full
                 }
             }
         }
         is (full) {
             when (io.flush) {
                 ptr := 0.U
-                stateReg := empty
+                state := empty
             } .elsewhen (io.deq.pop) {
                 ptr := ptr - 1.U
-                stateReg := filling
+                state := nonempty
             }
         }
     }
-    io.enq.full := stateReg === full
-    io.deq.empty := stateReg === empty
-    io.deq.dout := Mux(stateReg =/= empty, queue(ptr), 0.U)
+    io.enq.full := state === full
+    io.deq.empty := state === empty
+    io.deq.dout := Mux(state =/= empty, queue(ptr), 0.U)
 }
