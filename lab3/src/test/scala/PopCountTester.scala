@@ -5,8 +5,8 @@ import scala.util.Random
 
 // Tests different bit widths
 object Testset {
-    val width = List(8, 10, 16)
-    val numTest = 4
+    val width = List(8, 12, 16)
+    val numTest = 256
 }
 
 /*  The test plan:
@@ -22,11 +22,11 @@ class PopCountTester(dut: PopCounterTop, size: Int) extends PeekPokeTester(dut) 
     def reset() = {
         poke(dut.io.din, 0.U)
         step(1)
-        poke(dut.io.dinValid, true)
+        poke(dut.io.dinValid, true.B)
         while (peek(dut.io.popCntValid) == BigInt(0)){
             step(1)
         }
-        poke(dut.io.dinValid, false)
+        poke(dut.io.dinValid, false.B)
         poke(dut.io.popCntReady, true.B)
         step(1)
         expect(dut.io.popCnt, 0.U)
@@ -40,21 +40,24 @@ class PopCountTester(dut: PopCounterTop, size: Int) extends PeekPokeTester(dut) 
         poke(dut.io.din, maxInt)
         step(1)
         poke(dut.io.dinValid, true.B)
+        
         while (peek(dut.io.popCntValid) == BigInt(0)){
             step(1)
         }
-        poke(dut.io.dinValid, false)
+        poke(dut.io.dinValid, false.B)
         poke(dut.io.popCntReady, true.B)
         expect(dut.io.popCnt, size)
+        step(1)
 
         poke(dut.io.din, 0)
         poke(dut.io.dinValid, true.B)
         while (peek(dut.io.popCntValid) == BigInt(0)){
             step(1)
         }
-        poke(dut.io.dinValid, false)
+        poke(dut.io.dinValid, false.B)
         poke(dut.io.popCntReady, true.B)
         expect(dut.io.popCnt, BigInt(0))
+        step(1)
     }
 
     // Generates the expected count from a number
@@ -75,46 +78,80 @@ class PopCountTester(dut: PopCounterTop, size: Int) extends PeekPokeTester(dut) 
             poke(dut.io.din, inputs(i))
             step(1)
             poke(dut.io.dinValid, true.B)
-            println("Input is " + inputs(i).toString)
             while (peek(dut.io.popCntValid) == BigInt(0)){
                 step(1)
             }
-            poke(dut.io.dinValid, false)
+            poke(dut.io.dinValid, false.B)
             poke(dut.io.popCntReady, true.B)
             expect(dut.io.popCnt, count(inputs(i)))
+            step(1)
         }
     }
 
     // Test of boolean signals of the popcounter
     def handShakeTest() = {
 
+        // dinValid test
+        // Input 1 is poked to an invalid handshake, then dinValid is poked to high,
+        // making the handshake valid
         poke(dut.io.din, 1)
+        poke(dut.io.dinValid, false.B)
+        poke(dut.io.popCntReady, false.B)
         step(1)
-        for (i <- 0 to 3) {
-            poke(dut.io.dinValid, 0)
-            poke(dut.io.dinReady, 0)
-            poke(dut.io.popCntValid, 0)
-            poke(dut.io.popCntReady, 0)
+        poke(dut.io.din, 3)
+        poke(dut.io.dinValid, true.B)
+        while (peek(dut.io.popCntValid) == BigInt(0)) {
             step(1)
-            if (i == 0) {
-                poke(dut.io.dinValid, 1)
-            } else if (i == 1) {
-                poke(dut.io.dinReady, 1)
-            } else if (i == 2) {
-                poke(dut.io.popCntValid, 1)
-            } else {
-                poke(dut.io.popCntReady, 1)
-            }
-            step(size)
-            expect(dut.io.popCnt, 0)
         }
-        poke(dut.io.dinValid, 1)
-        poke(dut.io.dinReady, 1)
-        poke(dut.io.popCntValid, 1)
-        poke(dut.io.popCntReady, 1)
-        step(size)
-        expect(dut.io.popCnt, 1)
+        expect(dut.io.popCnt, 2)
+        poke(dut.io.popCntReady, true.B)
+        step(1)
 
+        // dinReady test
+        // Input 1 is poked with valid handshake, then input 3 is poked, but
+        // since handshake is now invalid, expected output is 1
+        poke(dut.io.din, 1)
+        poke(dut.io.dinValid, true.B)
+        poke(dut.io.popCntReady, false.B)
+        step(1)
+        expect(dut.io.dinReady, false.B)
+        poke(dut.io.din, 3)
+        while (peek(dut.io.popCntValid) == BigInt(0)) {
+            step(1)
+        }
+        expect(dut.io.popCnt, 1)
+        poke(dut.io.popCntReady, true.B)
+        step(1)
+        
+        // popCntValid test
+        // If popCntReady is high before popCntValid, the state should not 
+        // return to idle
+        poke(dut.io.din, 1)
+        poke(dut.io.dinValid, true.B)
+        poke(dut.io.popCntReady, false.B)
+        step(1)
+        poke(dut.io.popCntReady, true.B)
+        step(1)
+        expect(dut.io.dinReady, false.B)
+        while (peek(dut.io.popCntValid) == BigInt(0)) {
+            step(1)
+        }
+        poke(dut.io.popCntReady, true.B)
+        step(1)
+        expect(dut.io.dinReady, true.B)
+
+        // popCntReady test
+        poke(dut.io.din, 1)
+        poke(dut.io.dinValid, true.B)
+        poke(dut.io.popCntReady, false.B)
+        step(1)
+        while (peek(dut.io.popCntValid) == BigInt(0)) {
+            step(1)
+        }
+        expect(dut.io.dinReady, false.B)
+        poke(dut.io.popCntReady, true.B)
+        step(1)
+        expect(dut.io.dinReady, true.B)
     }
 
     val rng = new Random(15164845)

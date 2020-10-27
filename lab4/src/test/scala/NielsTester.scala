@@ -17,7 +17,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.io.enq.din.poke(rand.U)
           dut.clock.step(1)
         }
-          dut.io.enq.full.expect(true.B)
+          dut.io.enq.busy.expect(true.B)
       }
     }
   }
@@ -35,7 +35,7 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
         //dut.io.deq.read.poke(true.B)
         dut.io.enq.write.poke(false.B)
         dut.io.deq.read.poke(true.B)
-        while(dut.io.enq.full.peek == 1) {
+        while(dut.io.enq.busy.peek == 1) {
           dut.io.deq.dout.expect(w.U)
           dut.clock.step(2)
         }
@@ -44,13 +44,13 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
   }
 
 
-  it should "be empty after reset and get 0 on output" in {
+  it should "be notReady after reset and get 0 on output" in {
     test(new BubbleFifo(32, 4)) {
       dut => {
         val w = 0
         dut.reset.poke(true.B)
           dut.clock.step(1)
-          dut.io.deq.empty.expect(true.B)
+          dut.io.deq.notReady.expect(true.B)
           dut.io.deq.dout.expect(0.U)
       }
     }
@@ -66,17 +66,17 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
           dut.io.enq.din.poke(w.U)
           dut.clock.step(2)
         }
-        dut.io.enq.full.expect(true.B)
+        dut.io.enq.busy.expect(true.B)
         dut.io.enq.din.poke(5.U)
         dut.clock.step(1)
         //dut.io.enq.full.expect(true.B) //This made the test fail
-        //dut.io.deq.empty.expect(true.B) //This made the test fail
+        //dut.io.deq.notReady.expect(true.B) //This made the test fail
         //dut.io.deq.dout.expect(1.U) //This made the test fail
         dut.io.deq.read.poke(true.B)
         dut.io.enq.write.poke(false.B)
-        //dut.io.deq.empty.expect(true.B) // this made the test fail
+        //dut.io.deq.notReady.expect(true.B) // this made the test fail
         dut.clock.step(1)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
         // this sequence concludes that in this case after writing to af full fifo
         // there was only one element in the fifo.
       }
@@ -93,15 +93,15 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
         dut.io.enq.din.poke(2.U)
         dut.io.enq.write.poke(false.B)
         dut.io.deq.read.poke(true.B)
-        while(dut.io.enq.full.peek.litValue == 1) {
+        while(dut.io.enq.busy.peek.litValue == 1) {
           dut.clock.step(2)
         }
         dut.clock.step(1)
         dut.io.deq.dout.expect(0.U)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
         dut.clock.step(10)
         dut.io.deq.dout.expect(0.U)
-        dut.io.deq.empty.expect(true.B)
+        dut.io.deq.notReady.expect(true.B)
       }
     }
   }
@@ -115,14 +115,14 @@ class NielsTester extends FlatSpec with ChiselScalatestTester with Matchers {
            dut.io.enq.din.poke(w.U)
            dut.clock.step(1)
            dut.io.enq.write.poke(false.B)
-           while(dut.io.enq.full.peek.litValue() == 1) {
+           while(dut.io.enq.busy.peek.litValue() == 1) {
              dut.clock.step(1)
            }
          }
          }
        def reader(){
          for(w <- 1 to 4){
-           while(dut.io.deq.empty.peek.litValue == 1){
+           while(dut.io.deq.notReady.peek.litValue == 1){
              dut.io.deq.read.poke(false.B)
              dut.clock.step(1)
            }

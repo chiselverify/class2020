@@ -3,7 +3,7 @@
 ## ChiselTest
 
 Write several ChiselTest tests for the BubbleFifo.
-Have ate least on concurrent test (maybe testing the throughput, or startup time).
+Have at least one concurrent test (maybe testing the throughput, or startup time).
 
 
 The interface is:
@@ -11,13 +11,13 @@ The interface is:
 ```scala
 class WriterIO(size: Int) extends Bundle {
   val write = Input(Bool())
-  val full = Output(Bool())
+  val busy = Output(Bool())
   val din = Input(UInt(size.W))
 }
 
 class ReaderIO(size: Int) extends Bundle {
   val read = Input(Bool())
-  val empty = Output(Bool())
+  val notReady = Output(Bool())
   val dout = Output(UInt(size.W))
 }
 

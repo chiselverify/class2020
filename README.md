@@ -20,3 +20,9 @@ _How to Choose verification methodology_ by R. Purisai. This article starts out 
 Slides for Test Driven Development (TDD) presentation - https://docs.google.com/presentation/d/1VsoGNBGK07tDa9BOLWquPULzBzX6JDiC7RQ5Qk_W2d4/edit?usp=sharing
 
 Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38XyhBOi8_PNTjz58XGI_g-Bg_CBW1UXpour94/edit?usp=sharing
+
+## Projects
+
+### Verification of AMBA AXI Interfaced Components
+- by Hans Jakob Damsgaard
+- found in `./axi4/`
