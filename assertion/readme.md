@@ -43,5 +43,7 @@ https://www.scala-lang.org/api/current/scala/Predef$.html https://www.systemveri
 - Include race conditions?
 - Make several test example
 
+- When a way to reach the clocksignal is found, start creating counter for the assertion-function.
+
 ## Done
 
