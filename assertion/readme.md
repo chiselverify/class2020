@@ -35,5 +35,10 @@ https://www.scala-lang.org/api/current/scala/Predef$.html https://www.systemveri
 
 ## TODO
 - Study supported assertion in Scala vs other HDL (e.g. SystemVerilog)
+  - Research Property keyword from SystemVerilog
+  - Find a way to implement concurrent assertion in Scala
+- Find a solution to count clockcycles
 - Include race conditions?
 - Make simple test example
+
+## Done
