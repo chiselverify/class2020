@@ -20,9 +20,18 @@ Avaible at [FindIt](https://findit.dtu.dk/en/catalog/2441606068)
 by Lionel Benning and Harry Foster, Hewlett-Packard Company
 Avaible at [FindIt](https://findit.dtu.dk/en/catalog/2441585758)
 
+"Principles of function verification" - Andreas Meyer
+
 https://www.scalatest.org/user_guide/using_assertions
 
 https://verificationguide.com/systemverilog/systemverilog-assertions/ 
+
+https://www.chipverify.com/systemverilog/systemverilog-assertions-time-delay 
+
+https://docs.gradle.org/current/samples/sample_building_scala_libraries.html 
+
+https://www.scala-lang.org/api/current/scala/Predef$.html https://www.systemverilog.io/sva-basics
+
 
 ## TODO
 - Study supported assertion in Scala vs other HDL (e.g. SystemVerilog)
