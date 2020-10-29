@@ -1,4 +1,4 @@
-# Verification using SystemVerilog and UVM
+# Verification using SystemVerilog
 The intention of the project is to verify and assess the coverage parameters of the designs done in the course using SystemVerilg and compare them with those done using Chisel.
 
 ## Documentation
