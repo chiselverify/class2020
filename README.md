@@ -27,3 +27,9 @@ Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38
 - by Hans Jakob Damsgaard
 - Implementation of interface and transaction specifications for the AMBA AXI4 protocol in Scala to make testing of compliant Chisel components easier.
 - found in `./axi4/`
+
+### Assertions with time
+- by Niels Frederik Frandsen and Victor Alexander Hansen
+- Timedependent assertions, when working with testing in chisel. This type of assertions checks for a condition in a HDL design, which must be terminated within a specific time. This verification involves behaviour over time, as a signal should result in an expected behaviour from the design, or aborted within x clock cycles.
+- found in `./assertion/`
+
