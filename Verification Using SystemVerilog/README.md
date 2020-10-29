@@ -6,9 +6,9 @@ The tests will be done using a UVM framework in SystemVerilog. The coverage para
  ### The following modules will be verfified:
  1. Mux5: -- A Simple 5 input mux
  ` ` ` Verilog
- module Mux5( a , b, c, d, e, sel, y);\n
- 	input logic [7 : 0] a;\n
-  	input logic [7 : 0] b;\n
+ module Mux5( a , b, c, d, e, sel, y);
+ 	input logic [7 : 0] a;
+  	input logic [7 : 0] b;
   	input logic [7 : 0] c;
   	input logic [7 : 0] d;
   	input logic [7 : 0] e;
