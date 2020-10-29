@@ -1,14 +1,14 @@
-#Verification using SystemVerilog and UVM
+# Verification using SystemVerilog and UVM
 The intention of the project is to verify and assess the coverage parameters of the designs in the course using SystemVerilg and compare them with those done using Chisel.
 
-##Documentation
+## Documentation
 The tests will be done using a UVM framework in SystemVerilog. The coverage parameters will be noted and pushed towards ideal values. The values will then be compared with those obtained using Chisel for the same modules.
  ### The following modules will be verfified:
  1. Mux5: -- A Simple 5 input mux
  ` ` ` Verilog
- module Mux5( a , b, c, d, e, sel, y);
- 	input logic [7 : 0] a;
-  	input logic [7 : 0] b;
+ module Mux5( a , b, c, d, e, sel, y);\n
+ 	input logic [7 : 0] a;\n
+  	input logic [7 : 0] b;\n
   	input logic [7 : 0] c;
   	input logic [7 : 0] d;
   	input logic [7 : 0] e;
