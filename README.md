@@ -36,4 +36,4 @@ Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38
 - by Kishan Suchet Palani
 - Verify and note the test coverage parameters obtained from testing the designs(Mux, ALU with an accumulator, LIFO Queue, BubbleFIFO) in SystemVerilog following a UVM framework. 
 - Develop test further to get maximum test coverage.
-- found in `./Verification Using System Verilog/`
+- found in `./VerificationUsingSystemVerilog/`
