@@ -7,12 +7,13 @@ object conAssert {
       * @param message optional format string to print when the assertion fires
       * @param data optional bits to print in the message formatting
       * 
-      * @note This object is part 
+      * @note This object is part of the special course Verification of Digital
+      * Design course on DTU. It can be found on GitHub under the Chisel-UVM
+      * repository -> Class2020 -> assertions
+      *
+      * @author Victor Alexander Hansen, s194027@student.dtu.dk
+      * @author Niels Frederik Flemming Holm Frandsen, s194053@student.dtu.dk
       *
       *
-      *
-      *
-      *
-      
     */
 }
