@@ -1,0 +1,12 @@
+# Ignore metals-related temp files
+.bloop/
+.metals/
+.vscode/
+project/.bloop/
+project/project/
+project/src/
+project/target/
+project/metals.sbt
+
+# Ignore generated files
+target/
