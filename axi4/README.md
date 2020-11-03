@@ -5,29 +5,49 @@ This project focuses on implementation of AXI4 master interface definitions and 
 The AXI protocol defines five independent channels for reads and writes as listed below. As they are independent, read/write addresses may be transferred to a slave ahead of transferring the data. So-called _transactions_ consist of one or more _tranfers_ across a set of channels. Data is transferred in _bursts_ which consist of one or more _beats_. The protocol also supports multiple outstanding transactions and out-of-order completion by using tagged packets. All channels use simple decoupled ready-valid signalling.
 
 ### Channels
-The following channels are defined in the AXI4(3) protocol
+The following channels are defined in the AXI4 protocol. ID fields are partly optional in that they do not have to be unique as the interconnect must append master numbers to them to ensure correct operation.
 - _Write address channel_ used to initiate a write transaction from master to slave. A transfer contains ID, address, burst length, burst type, cacheability etc. (see page A2-29)
-  - `AWID    [_:0]` partly optional ID field (interconnect appends master number to this, i.e. it does not have to be unique) 
-  - `AWADDR  [_:0]` start address of this transaction
+  - `AWID    [_:0]` ID field
+  - `AWADDR  [_:0]` start address of a write transaction
   - `AWLEN   [7:0]` number of beats in the burst
   - `AWSIZE  [2:0]` beat size encoding, i.e. number of bytes per beat is 2^AWSIZE
   - `AWBURST [1:0]` one of _FIXED_, _INCR_, or _WRAP_
-  - `AWLOCK`, `AWCACHE`, `AWPROT`, and `AWQOS` control data protection and quality of service
-  - `AWREGION` allows sharing of a single physical interface for multiple logical regions
-  - _Optional_ `AWUSER`
+  - `AWLOCK`, `AWCACHE [3:0]`, `AWPROT [2:0]`, and `AWQOS [3:0]` control data protection and quality of service
+  - _Optional_ `AWREGION [3:0]` allows sharing of a single physical interface for multiple logical regions
+  - _Optional_ `AWUSER [_:0]`
   - `AWREADY` and `AWVALID` handshake signals
 
 - _Write data channel_ used to transfer write data from master to slave. A transfer contains ID, data, byte-wide write enable etc. (see page A2-30)
-
+  - `WDATA   [_:0]` write data
+  - `WSTRB   [_:0]` write strobe (i.e. one bit per byte of data)
+  - `WLAST` indicates whether this is the last beat in a burst
+  - _Optional_ `WUSER [_:0]`
+  - `WREADY` and `WVALID` handshake signals
 
 - _Write response channel_ used to inform a master about the completion of a write transaction. A transfer contains ID, write status etc. (see page A2-31)
-
+  - `BID     [_:0]` ID field
+  - `BRESP   [1:0]` write response from the slave; i.e. one of _OKAY_, _EXOKAY_, _SLVERR_, or _DECERR_
+  - _Optional_ `BUSER`
+  - `BREADY` and `BVALID` handshake signals
 
 - _Read address channel_ used to initiate a read transaction from slave to master. A transfer contains ID, address, burst length, burst type, cacheability etc. (see page A2-32)
-
+  - `ARID    [_:0]` ID field
+  - `ARADDR  [_:0]` start address of a read transaction
+  - `ARLEN   [7:0]` number of beats in the burst
+  - `ARSIZE  [2:0]` beat size encoding
+  - `ARBURST [1:0]` one of _FIXED_, _INCR_, or _WRAP_
+  - `ARLOCK`, `ARCACHE [3:0]`, `ARPROT [2:0]`, and `ARQOS [3:0]` control data protection and quality of service
+  - _Optional_ `ARREGION [3:0]` allows sharing of a single physical interface for multiple logical regions
+  - _Optional_ `ARUSER [_:0]`
+  - `ARREADY` and `ARVALID` handshake signals
 
 - _Read data channel_ used to transfer read data from slave to master. A transfer contains ID, data etc. (see page A2-33)
-
+  - `RID     [_:0]` ID field
+  - `RDATA   [_:0]` read data
+  - `RRESP   [1:0]` read response from the slave
+  - `RLAST` indicates whether this is the last beat in a burst
+  - _Optional_ `RUSER [_:0]`
+  - `RREADY` and `RVALID` handshake signals
 
 Additionally, two global signals are used (see page A2-28)
 - `ACLK` a shared global clock signal
