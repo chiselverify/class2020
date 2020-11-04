@@ -86,4 +86,13 @@ The following are taken from the specification.
 - Burst length is in \[1, 256\] for burst type INCR; for all other burst types it is in \[1, 16\]
 - Bursts _must_ be completed (i.e. no support for early termination)
 - Beat size _must not_ exceed the data bus width of neither the master nor the slave.
+- Narrow transfers (i.e. transfers using a subsection of the data bus) are implemented using `WSTRB`
+- Byte invariance means that some transfers can be little endian while others can be big endian
+- Unaligned transfers are indicated either with the low-order address bits or using `WSTRB`
+- Only one response is returned for write transactions, whereas a different response may be returned for each beat in a read transaction - and the entire transaction _must_ be completed regardless of potential errors
+- Asserting `AxCACHE[1]` means that a transaction is _modifiable_ and can, for example, be broken down into multiple transactions, combined with other transactions, or fetch more data than requested
+- Transaction ordering must be preserved for non-modifiable transactions with the same ID to the same slave (see pages A4-63 to A4-64)
 
+### Regarding multiple transactions
+- The ID signals can be used to identify separate transactions that must be returned in order
+- AXI4 does _not_ support write data interleaving

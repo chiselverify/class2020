@@ -181,7 +181,7 @@ case class AXI4RDFull(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW) with 
  * 
  * Components meant to use this interface should extend it
  */
-abstract class AXI4MasterInterface extends Bundle {
+abstract class AXI4MasterBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) extends Bundle {
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -190,17 +190,18 @@ abstract class AXI4MasterInterface extends Bundle {
    * [[ar]] is the read address channel
    * [[dr]] is the read data channel
    */
-  val aw = 1
-  val dw = 2
-  val wr = 3
-  val ar = 4
-  val dr = 5
+  val aw = Decoupled(new AXI4WA(idW, addrW))
+  val dw = Decoupled(new AXI4WD(wdataW))
+  val wr = Decoupled(new AXI4WR(idW))
+  val ar = Decoupled(new AXI4RA(idW, addrW))
+  val dr = Decoupled(new AXI4RD(idW, rdataW))
 
-  /* Suggest names to the verilog generator */
-  /**
-    * TODO: Implement this
-    */
+  /** Status fields indicating support for USER and REGION signals */
+  val has_user = false
+  val has_region = false
 }
+case class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW)
+// TODO: Add other extensions
 
 /** AXI4 slave interface
  * 
@@ -215,14 +216,15 @@ abstract class AXI4SlaveInterface extends Bundle {
    * [[ar]] is the read address channel
    * [[dr]] is the read data channel
    */
-  val aw = 1
-  val dw = 2
-  val wr = 3
-  val ar = 4
-  val dr = 5
+  val aw = Flipped(Decoupled(new AXI4WA(idW, addrW)))
+  val dw = Flipped(Decoupled(new AXI4WD(wdataW)))
+  val wr = Flipped(Decoupled(new AXI4WR(idW)))
+  val ar = Flipped(Decoupled(new AXI4RA(idW, addrW)))
+  val dr = Flipped(Decoupled(new AXI4RD(idW, rdataW)))
 
-  /* Suggest names to the verilog generator */
-  /**
-    * TODO: Implement this
-    */
+  /** Status fields indicating support for USER and REGION signals */
+  val has_user = false
+  val has_region = false
 }
+case class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveInterface(idw, addrW, dataW, dataW)
+// TODO: Add other extensions
