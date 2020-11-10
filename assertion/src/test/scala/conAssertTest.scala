@@ -1,16 +1,19 @@
 import chisel3._
 import chiseltest._
 import org.scalatest._
+import concurrent._
 
+// Test for testing in Assertion with timing project
+// Compiles but test does not yet pass
 class conAssertTest extends FlatSpec with ChiselScalatestTester with Matchers {
-    behavior of "The conAssert"
+    behavior of "The mainClass"
 
     it should "test true condition" in {
-        test(new conAssert(true.B, 10, "Error")) {
+        test(new mainClass()) {
             dut => {
-                dut.io.sigA.poke(true.B)
+                dut.io.s.poke(true.B)
                 dut.clock.step(1)
-                dut.io.testp.expect(true.B)
+                assert(true, "Error")
             }
         }
     }
