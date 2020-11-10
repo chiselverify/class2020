@@ -22,4 +22,7 @@ clean:
 	@if [ -d "./test_run_dir" ]; then rm -rf ./test_run_dir/*; rmdir ./test_run_dir; fi
 	@echo "Cleaning the project."
 	@$(SBT) clean
+	@if [ -d "./project/target" ]; then rm -rf ./project/target/*; rmdir ./project/target; fi
+	@if [ -d "./project/project" ]; then rm -rf ./project/project/*; rmdir ./project/project; fi
+	@if [ -d "./target" ]; then rm -rf ./target/*; rmdir ./target; fi
 	@echo "Folder cleaned!"

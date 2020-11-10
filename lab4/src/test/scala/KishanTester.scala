@@ -1,138 +1,124 @@
-//import chisel3._
-//import chiseltest._
-//import org.scalatest._
-//
-//object Test_param{
-//  println("Enter bit width of FIFO:")
-//  val bwidth : Int = scala.io.StdIn.readLine.toInt
-//  println("Enter stages of FIFO:")
-//  val depth : Int = scala.io.StdIn.readLine.toInt
-//}
-//class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
-//  behavior of Test_param.bwidth + "-bit Bubble FIFO with depth " + Test_param.depth + "-stage FIFO"
-//  it should "Successfully move data from input to output" in {
-//    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
-//      dut => {
-//        val inp = dut.io.enq
-//        val op = dut.io.deq
-//        //----------Poke stream----------
-//        for (j <- 0 until (Test_param.depth - 1)) {
-//          inp.write.poke(1.B)
-//          op.read.poke(0.B)
-//          inp.din.poke(j.U)
-//          println("j:"+j)
-//          println("not ready after write ip " + op.notReady.peek)
-//          println("busy after write ip stream " + inp.busy.peek)
-//          dut.clock.step(1)
-//          while(inp.busy.peek.litValue == 1 && op.notReady.peek.litValue==1 ){
-//            dut.clock.step(1)
-//          }
-//        }
-//        println("not ready in between write ip " + op.notReady.peek)
-//        println("busy after in between ip stream " + inp.busy.peek)
-//        //dut.clock.step(1)
-//        //println("not ready after write stream " + op.notReady.peek)
-//        //println("busy after write stream " + inp.busy.peek)
-//        //-----------Read stream----------
-//        for (j <- 0 until (Test_param.depth - 1)) {
-//          inp.write.poke(0.B)
-//          op.read.poke(1.B)
-//          println("not ready inside read stream before step " + op.notReady.peek)
-//          println("dout inside read stream " + op.dout.peek)
-//          op.dout.expect(j.U((Test_param.bwidth).W))
-//          println("not ready inside read stream " + op.notReady.peek)
-//          dut.clock.step(1)
-//          while(op.notReady.peek.litValue == 1 && j < (Test_param.depth - 1)){
-//            dut.clock.step(1)
-//          }
-//          //dut.clock.step(1)
-//        }
-//      }
-//    }
-//  }
-//  it should "Successfully Reset" in {
-//    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
-//      dut => {
-//        val inp = dut.io.enq
-//        val op = dut.io.deq
-//        inp.write.poke(1.B)
-//        //inp.din.poke(7.U)
-//        op.read.poke(0.B)
-//        var j = 0
-//        for (j <- 0 until (Test_param.depth)) {
-//          inp.write.poke(1.B)
-//          //inp.din.poke(7.U)
-//          op.read.poke(0.B)
-//          inp.din.poke(1.U)
-//          //println("din: " + j.toString)
-//          //println("output: "+op.dout.peek.toString)
-//          dut.clock.step(1)
-//          dut.clock.step(1)
-//        }
-//        //-----------Reset poke----------
-//        dut.reset.poke(1.B)
-//        dut.clock.step(1)
-//        dut.reset.poke(0.B)
-//        dut.clock.step(1)
-//        //-----------Emtpy Signal Poke Test----------
-//        op.notReady.expect(1.B)
-//      }
-//    }
-//  }
-//  it should "Successfully Indicate Full and Empty Queue" in {
-//    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
-//      dut => {
-//        val inp = dut.io.enq
-//        val op = dut.io.deq
-//        for (j <- 0 until (Test_param.depth)) {
-//          inp.write.poke(1.B)
-//          //inp.din.poke(7.U)
-//          op.read.poke(0.B)
-//          inp.din.poke(1.U(67.W))
-//          //println("din: " + j.toString)
-//          dut.clock.step(1)
-//          dut.clock.step(1)
-//        }
-//        dut.io.enq.busy.expect(1.B)
-//        for (j <- 0 until (Test_param.depth)) {
-//          inp.write.poke(0.B)
-//          op.read.poke(1.B)
-//          //println("output : " + op.dout.peek)
-//          dut.clock.step(1)
-//          dut.clock.step(1)
-//        }
-//        op.notReady.expect(1.B)
-//      }
-//    }
-//  }
-//  it should "Use out of Bounds value" in {
-//    test(new BubbleFifo(8, 4)) {
-//      dut => {
-//        val inp = dut.io.enq
-//        val op = dut.io.deq
-//        for (j <- 0 until 4) {
-//          inp.write.poke(1.B)
-//          //inp.din.poke(7.U)
-//          op.read.poke(0.B)
-//          //Poking IntMaxValue = 2147483647
-//          println(Int.MaxValue)
-//          inp.din.poke(Int.MaxValue.U)
-//          dut.clock.step(1)
-//          dut.clock.step(1)
-//        }
-//        dut.io.enq.busy.expect(1.B)
-//        //8 bit so max value is 255
-//        for (j <- 0 until 4) {
-//          inp.write.poke(0.B)
-//          op.read.poke(1.B)
-//          op.dout.expect(255.U)
-//          dut.clock.step(1)
-//          dut.clock.step(1)
-//        }
-//        op.notReady.expect(1.B)
-//      }
-//    }
-//  }
+import chisel3._
+import chiseltest._
+import org.scalatest._
+
+object Test_param{
+  println("Enter bit width of FIFO:")
+  val bwidth : Int = scala.io.StdIn.readLine.toInt
+  println("Enter stages of FIFO:")
+  val depth : Int = scala.io.StdIn.readLine.toInt
+}
+class KishanTester extends FlatSpec with ChiselScalatestTester with Matchers {
+  behavior of Test_param.bwidth + "-bit Bubble FIFO with depth " + Test_param.depth
+  it should "Successfully move input stream to output" in {
+    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
+      dut => {
+        val inp = dut.io.enq
+        val op = dut.io.deq
+        //----------Poke stream----------
+        for (j <- 0 until (Test_param.depth - 1)) {
+          inp.write.poke(1.B)
+          op.read.poke(0.B)
+          inp.din.poke(j.U)
+          dut.clock.step(1)
+
+          while(inp.busy.peek.litValue == 1 && j<(Test_param.depth -2) ){
+            dut.clock.step(1)
+          }
+        }
+        //-----------Read stream----------
+        for (j <- 0 until (Test_param.depth - 1)) {
+          inp.write.poke(0.B)
+          op.read.poke(1.B)
+          op.dout.expect(j.U((Test_param.bwidth).W))
+          dut.clock.step(1)
+          while(op.notReady.peek.litValue == 1 && j <(Test_param.depth - 2)){
+            dut.clock.step(1)
+          }
+        }
+      }
+    }
+  }
+  it should "Successfully Reset" in {
+    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
+      dut => {
+        val inp = dut.io.enq
+        val op = dut.io.deq
+        for (j <- 0 until (Test_param.depth - 1)) {
+          inp.write.poke(1.B)
+          op.read.poke(0.B)
+          inp.din.poke(1.U)
+          dut.clock.step(1)
+          while(inp.busy.peek.litValue == 1 && j<(Test_param.depth -2) ){
+            dut.clock.step(1)
+          }
+        }
+        //-----------Reset poke----------
+        dut.reset.poke(1.B)
+        dut.clock.step(1)
+        dut.reset.poke(0.B)
+        dut.clock.step(1)
+        //-----------Emtpy Signal Poke Test----------
+        op.notReady.expect(1.B)
+      }
+    }
+  }
+  it should "Successfully Indicate Full and Empty Queue" in {
+    test(new BubbleFifo(Test_param.bwidth, Test_param.depth)) {
+      dut => {
+        val inp = dut.io.enq
+        val op = dut.io.deq
+        for (j <- 0 until (Test_param.depth - 1)) {
+          inp.write.poke(1.B)
+          op.read.poke(0.B)
+          inp.din.poke(1.U(Test_param.bwidth.W))
+          dut.clock.step(1)
+          while(inp.busy.peek.litValue == 1 && j<(Test_param.depth -2) ){
+            dut.clock.step(1)
+          }
+        }
+        dut.io.enq.busy.expect(1.B)
+        for (j <- 0 until (Test_param.depth - 1)) {
+          inp.write.poke(0.B)
+          op.read.poke(1.B)
+          dut.clock.step(1)
+          while(op.notReady.peek.litValue == 1 && j <(Test_param.depth - 2)){
+            dut.clock.step(1)
+          }
+        }
+        op.notReady.expect(1.B)
+      }
+    }
+  }
+  it should "Use overflow values" in {
+    test(new BubbleFifo(8, 4)) {
+      dut => {
+        val inp = dut.io.enq
+        val op = dut.io.deq
+        for (j <- 0 until 4) {
+          inp.write.poke(1.B)
+          op.read.poke(0.B)
+          inp.din.poke(Int.MaxValue.U)
+          dut.clock.step(1)
+          while(inp.busy.peek.litValue == 1 && j<(3) ){
+            dut.clock.step(1)
+          }
+        }
+        dut.io.enq.busy.expect(1.B)
+        //8 bit so max value is 255
+        for (j <- 0 until 4) {
+          inp.write.poke(0.B)
+          op.read.poke(1.B)
+          op.dout.expect(255.U)
+          dut.clock.step(1)
+          while(op.notReady.peek.litValue == 1 && j <(3)){
+            dut.clock.step(1)
+          }
+        }
+        op.notReady.expect(1.B)
+      }
+    }
+  }
 //  it should "Successfully Operate at Maximum Throughput" in {
 //    test(new BubbleFifo(Test_param.bwidth,Test_param.depth)) {
 //      dut => {
@@ -150,7 +136,11 @@
 //            //println("Full is " + inp.busy.peek)
 //            //if(j==1) dut.clock.step(2*(Test_param.depth - 1))
 //            dut.clock.step(1)
-//            i = i + 1
+//            while(inp.busy.peek.litValue == 1){
+//              dut.clock.step(1)
+//              i = i + 1
+//            }
+//
 //            //println(i)
 //            //println("Empty is " + op.notReady.peek)
 //          }
@@ -159,7 +149,10 @@
 //            op.read.poke(1.B)
 //            //inp.din.poke(j.U)
 //            dut.clock.step(1)
-//            i = i + 1
+//            while(op.notReady.peek.litValue == 1){
+//              dut.clock.step(1)
+//              i = i + 1
+//            }
 //          }
 //          //--Poke Expect Test--
 //          else {
@@ -209,4 +202,4 @@
 //      }
 //    }
 //  }
-//}
+}
