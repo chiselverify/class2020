@@ -31,16 +31,16 @@ https://docs.gradle.org/current/samples/sample_building_scala_libraries.html
 https://www.scala-lang.org/api/current/scala/Predef$.html https://www.systemverilog.io/sva-basics
 
 ## TODO
-- Study supported assertion in Scala vs other HDL (e.g. SystemVerilog)
-  - Research Property keyword from SystemVerilog
-  - Find a way to implement concurrent assertion in Scala
-- Find a viable solution to count clockcycles
-  - preferably be able to access the clocksignal in chisel, like you can do in systemverilog
+
+- Find a way to implement concurrent assertion in Scala
 - Figure out what property testing is 
 - Include race conditions?
 - Make several test example
-
-- When a way to reach the clocksignal is found, start creating counter for the assertion-function.
+  - Some example with Master-slave transaction
+  - 1965 Thunderbird Rear indicator
 
 ## Done
-
+- Study supported assertion in Scala vs other HDL (e.g. SystemVerilog)
+  - Research Property keyword from SystemVerilog
+- Find a viable solution to count clockcycles
+  - preferably be able to access the clocksignal in chisel, like you can do in systemverilog
