@@ -36,7 +36,6 @@ https://www.scala-lang.org/api/current/scala/Predef$.html https://www.systemveri
 - Figure out what property testing is 
 - Include race conditions?
 - Make several test example
-  - Some example with Master-slave transaction
   - 1965 Thunderbird Rear indicator
 
 ## Done

@@ -17,6 +17,9 @@ _ASIC/SoC Functional Design Verification_ by A. B. Mehta. The book serves as a g
 
 _How to Choose verification methodology_ by R. Purisai. This article starts out by comparing Verification and validation(test). In part 1.3 the author describes various types of testing strategies, and talks about trends within the field of testing. In part 1.4 the author offers some ideas in terms of choosing the right verification methodology.
 
+_SystemVerilog for Verification: A guide to learning the testbench language features - 2008 version_ by Chris Spear
+https://link-springer-com.proxy.findit.dtu.dk/book/10.1007%2F978-0-387-76530-3
+
 Slides for Test Driven Development (TDD) presentation - https://docs.google.com/presentation/d/1VsoGNBGK07tDa9BOLWquPULzBzX6JDiC7RQ5Qk_W2d4/edit?usp=sharing
 
 Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38XyhBOi8_PNTjz58XGI_g-Bg_CBW1UXpour94/edit?usp=sharing
