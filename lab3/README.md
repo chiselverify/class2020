@@ -155,6 +155,33 @@ Popcounter with FSM, takes a bit string and counts how many 1's it contains.
 * Test functionality of LIFO
 * Test Writing and Reading at the same cycle
 
+## Design 3 - Moving average
+
+ * Design engineer: Andreas
+ * Verification engineer: Andreas
+
+### Specification
+Moving average over a queue with a constant power of 2 size.
+Possible to specify both queue length and bit sise of each item.
+An item is an unsigned integer and the average value is computed as such.
+It takes 1 cycle for the queue to update the average after a new item
+was inserted.
+
+```scala
+  class MovingAveragePow2(averageLength: Int, bitCount: Int) extends Module {
+    val io = IO(new Bundle{
+      val din = Input(UInt(bitCount.W))
+      val write = Input(Bool())
+      val avg = Output(UInt(bitCount.W))
+    })
+  }
+```
+
+### Test plan
+ * Test that the module can only be initialized with valid values
+ * Test that the average is correct given a variety of inputs
+ * Test that coner cases for the average value
+
 
 
 
