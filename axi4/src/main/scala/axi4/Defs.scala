@@ -166,8 +166,12 @@ class AXI4RDUser(idW: Int, dataW: Int) extends AXI4RD(idW, dataW) with UserSigna
 /** AXI4 master interface
  * 
  * Components meant to use this interface should extend it
+ * 
+ * @param idW the width of the ID signals in bits
+ * @param addrW the width of the address signals in bits
+ * @param dataW the width of the data read/write signals in bits
  */
-abstract class AXI4MasterBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) extends Bundle {
+abstract class AXI4MasterBase(idW: Int, addrW: Int, dataW: Int) extends Bundle {
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -177,13 +181,13 @@ abstract class AXI4MasterBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) ex
    * [[dr]] is the read data channel
    */
   val aw = Decoupled(new AXI4WA(idW, addrW))
-  val dw = Decoupled(new AXI4WD(wdataW))
+  val dw = Decoupled(new AXI4WD(dataW))
   val wr = Flipped(Decoupled(Flipped(new AXI4WR(idW))))
   val ar = Decoupled(new AXI4RA(idW, addrW))
-  val dr = Flipped(Decoupled(Flipped(new AXI4RD(idW, rdataW))))
+  val dr = Flipped(Decoupled(Flipped(new AXI4RD(idW, dataW))))
 }
-class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW)
-class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW) {
+class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW)
+class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4Master(idW, addrW, dataW) {
   override val aw = Decoupled(new AXI4WAUser(idW, addrW))
   override val dw = Decoupled(new AXI4WDUser(dataW))
   override val wr = Flipped(Decoupled(Flipped(new AXI4WRUser(idW))))
@@ -194,8 +198,12 @@ class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(id
 /** AXI4 slave interface
  * 
  * Components meant to use this interface should extend it
+ * 
+ * @param idW the width of the ID signals in bits
+ * @param addrW the width of the address signals in bits
+ * @param dataW the width of the data read/write signals in bits
  */
-abstract class AXI4SlaveBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) extends Bundle {  
+abstract class AXI4SlaveBase(idW: Int, addrW: Int, dataW: Int) extends Bundle {  
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -205,13 +213,13 @@ abstract class AXI4SlaveBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) ext
    * [[dr]] is the read data channel
    */
   val aw = Flipped(Decoupled(new AXI4WA(idW, addrW)))
-  val dw = Flipped(Decoupled(new AXI4WD(wdataW)))
+  val dw = Flipped(Decoupled(new AXI4WD(dataW)))
   val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WR(idW)))))
   val ar = Flipped(Decoupled(new AXI4RA(idW, addrW)))
-  val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RD(idW, rdataW)))))
+  val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RD(idW, dataW)))))
 }
-class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW, dataW)
-class AXI4SlaveUser(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW, dataW) {
+class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW)
+class AXI4SlaveUser(idW: Int, addrW: Int, dataW: Int) extends AXI4Slave(idW, addrW, dataW) {
   override val aw = Flipped(Decoupled(new AXI4WAUser(idW, addrW)))
   override val dw = Flipped(Decoupled(new AXI4WDUser(dataW)))
   override val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WRUser(idW)))))

@@ -59,9 +59,7 @@ Channel descriptions are available in `./src/main/scala/Defs.scala`. DUVs must c
 The full public protocol specification is available from ARM [here](https://developer.arm.com/documentation/ihi0022/e/) and in PDF format [here](http://www.gstitt.ece.ufl.edu/courses/fall15/eel4720_5721/labs/refs/AXI4_specification.pdf). A good video introduction is available from [ARM's YouTube channel](https://www.youtube.com/watch?v=7Vl9JrGgNwk).
 
 ## TODO
-- AXI4 master interface
 - AXI4 master transactions
-- Find simple slave system to test
 - Implement small test example
 
 ## Notes
