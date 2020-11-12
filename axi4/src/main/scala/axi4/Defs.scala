@@ -11,64 +11,60 @@ package axi4
 import chisel3._
 import chisel3.util._
 
+/** Constant naming according to https://docs.scala-lang.org/style/naming-conventions.html */
+
 /** AXI4 burst encodings */
 object BurstEncodings {
-  val fixed             = "b00".U
-  val incr              = "b01".U
-  val wrap              = "b10".U
+  val Fixed             = "b00".U
+  val Incr              = "b01".U
+  val Wrap              = "b10".U
 }
 
 /** AXI lock encodings */
 object LockEncodings {
-  val normal_access     = false.B
-  val exclusive_access  = true.B
+  val NormalAccess     = false.B
+  val ExclusiveAccess  = true.B
 }
 
 /** AXI4 memory encodings */
 object MemoryEncodings {
-  val device_nonbuf     = "b0000".U
-  val device_buf        = "b0001".U
-  val normal_nonbuf     = "b0010".U 
-  val normal_buf        = "b0011".U
-  val wt_noalloc        = "b0110".U
-  val wt_readalloc      = "b0110".U
-  val wt_writealloc     = "b1110".U
-  val wt_rwalloc        = "b1110".U
-  val wb_noalloc        = "b0111".U
-  val wb_readalloc      = "b0111".U
-  val wb_writealloc     = "b1111".U
-  val wb_rwalloc        = "b1111".U
+  val DeviceNonbuf     = "b0000".U
+  val DeviceBuf        = "b0001".U
+  val NormalNonbuf     = "b0010".U 
+  val NormalBuf        = "b0011".U
+  val WtNoalloc        = "b0110".U
+  val WtReadalloc      = "b0110".U
+  val WtWritealloc     = "b1110".U
+  val WtRwalloc        = "b1110".U
+  val WbNoalloc        = "b0111".U
+  val WbReadalloc      = "b0111".U
+  val WbWritealloc     = "b1111".U
+  val WbRwalloc        = "b1111".U
 }
 
 /** AXI4 protection encodings */
 object ProtectionEncodings {
-  val data_sec_upriv    = "b000".U
-  val data_sec_priv     = "b001".U
-  val data_nsec_upriv   = "b010".U
-  val data_nsec_priv    = "b011".U
-  val instr_sec_upriv   = "b100".U
-  val instr_sec_priv    = "b101".U
-  val instr_nsec_upriv  = "b110".U
-  val instr_nsec_priv   = "b111".U
+  val DataSecUpriv    = "b000".U
+  val DataSecPriv     = "b001".U
+  val DataNsecUpriv   = "b010".U
+  val DataNsecPriv    = "b011".U
+  val InstrSecUpriv   = "b100".U
+  val InstrSecPriv    = "b101".U
+  val InstrNsecUpriv  = "b110".U
+  val InstrNsecPriv   = "b111".U
 }
 
 /** AXI4 response encodings */
 object ResponseEncodings {
-  val okay              = "b00".U
-  val exokay            = "b01".U
-  val slverr            = "b10".U
-  val decerr            = "b11".U
+  val Okay              = "b00".U
+  val Exokay            = "b01".U
+  val Slverr            = "b10".U
+  val Decerr            = "b11".U
 }
 
-// TODO: Figure out whether this signal works when its width is inferred
 /** User signal trait */
 trait UserSignal {
   val user = Output(UInt())
-}
-
-/** Region signal trait */
-trait RegionSignal {
-  val region = Output(UInt(4.W))
 }
 
 /** AXI4 write address base interface
@@ -90,11 +86,10 @@ abstract class AXI4WABase(idW: Int, addrW: Int) extends Bundle {
   val cache   = Output(UInt(4.W))
   val prot    = Output(UInt(3.W))
   val qos     = Output(UInt(4.W))
+  val region  = Output(UInt(4.W))
 }
-case class AXI4WA(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW)
-case class AXI4WAUser(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW) with UserSignal
-case class AXI4WARegion(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW) with RegionSignal
-case class AXI4WAFull(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW) with UserSignal with RegionSignal
+class AXI4WA(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW)
+class AXI4WAUser(idW: Int, addrW: Int) extends AXI4WA(idW, addrW) with UserSignal
 
 /** AXI4 write data base interface
  * 
@@ -109,10 +104,8 @@ abstract class AXI4WDBase(dataW: Int) extends Bundle {
   val strb    = Output(UInt((dataW/8).W))
   val last    = Output(Bool())
 }
-case class AXI4WD(dataW: Int) extends AXI4WDBase(dataW)
-case class AXI4WDUser(dataW: Int) extends AXI4WDBase(dataW) with UserSignal
-case class AXI4WDRegion(dataW: Int) extends AXI4WDBase(dataW) with RegionSignal
-case class AXI4WDFull(dataW: Int) extends AXI4WDBase(dataW) with UserSignal with RegionSignal
+class AXI4WD(dataW: Int) extends AXI4WDBase(dataW)
+class AXI4WDUser(dataW: Int) extends AXI4WD(dataW) with UserSignal
 
 /** AXI4 write response base interface
  * 
@@ -125,10 +118,8 @@ abstract class AXI4WRBase(idW: Int) extends Bundle {
   val id      = Input(UInt(idW.W))
   val resp    = Input(UInt(2.W))
 }
-case class AXI4WR(idW: Int) extends AXI4WRBase(idW)
-case class AXI4WRUser(idW: Int) extends AXI4WRBase(idW) with UserSignal
-case class AXI4WRRegion(idW: Int) extends AXI4WRBase(idW) with RegionSignal
-case class AXI4WRFull(idW: Int) extends AXI4WRBase(idW) with UserSignal with RegionSignal
+class AXI4WR(idW: Int) extends AXI4WRBase(idW)
+class AXI4WRUser(idW: Int) extends AXI4WR(idW) with UserSignal
 
 /** AXI4 read address base interface
  * 
@@ -149,11 +140,10 @@ abstract class AXI4RABase(idW: Int, addrW: Int) extends Bundle {
   val cache   = Output(UInt(4.W))
   val prot    = Output(UInt(3.W))
   val qos     = Output(UInt(4.W))
+  val region  = Output(UInt(4.W))
 }
-case class AXI4RA(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW)
-case class AXI4RAUser(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW) with UserSignal
-case class AXI4RARegion(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW) with RegionSignal
-case class AXI4RAFull(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW) with UserSignal with RegionSignal
+class AXI4RA(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW)
+class AXI4RAUser(idW: Int, addrW: Int) extends AXI4RA(idW, addrW) with UserSignal
 
 /** AXI4 read data base interface
  * 
@@ -170,12 +160,8 @@ abstract class AXI4RDBase(idW: Int, dataW: Int) extends Bundle {
   val resp    = Input(UInt(2.W))
   val last    = Input(Bool())
 }
-case class AXI4RD(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW)
-case class AXI4RDUser(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW) with UserSignal
-case class AXI4RDRegion(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW) with RegionSignal
-case class AXI4RDFull(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW) with UserSignal with RegionSignal
-
-// TODO: Finish the stuff below here
+class AXI4RD(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW)
+class AXI4RDUser(idW: Int, dataW: Int) extends AXI4RD(idW, dataW) with UserSignal
 
 /** AXI4 master interface
  * 
@@ -192,22 +178,24 @@ abstract class AXI4MasterBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) ex
    */
   val aw = Decoupled(new AXI4WA(idW, addrW))
   val dw = Decoupled(new AXI4WD(wdataW))
-  val wr = Decoupled(new AXI4WR(idW))
+  val wr = Flipped(Decoupled(Flipped(new AXI4WR(idW))))
   val ar = Decoupled(new AXI4RA(idW, addrW))
-  val dr = Decoupled(new AXI4RD(idW, rdataW))
-
-  /** Status fields indicating support for USER and REGION signals */
-  val has_user = false
-  val has_region = false
+  val dr = Flipped(Decoupled(Flipped(new AXI4RD(idW, rdataW))))
 }
-case class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW)
-// TODO: Add other extensions
+class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW)
+class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW, dataW) {
+  override val aw = Decoupled(new AXI4WAUser(idW, addrW))
+  override val dw = Decoupled(new AXI4WDUser(dataW))
+  override val wr = Flipped(Decoupled(Flipped(new AXI4WRUser(idW))))
+  override val ar = Decoupled(new AXI4RAUser(idW, addrW))
+  override val dr = Flipped(Decoupled(Flipped(new AXI4RDUser(idW, dataW))))
+}
 
 /** AXI4 slave interface
  * 
  * Components meant to use this interface should extend it
  */
-abstract class AXI4SlaveInterface extends Bundle {  
+abstract class AXI4SlaveBase(idW: Int, addrW: Int, wdataW: Int, rdataW: Int) extends Bundle {  
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -218,13 +206,15 @@ abstract class AXI4SlaveInterface extends Bundle {
    */
   val aw = Flipped(Decoupled(new AXI4WA(idW, addrW)))
   val dw = Flipped(Decoupled(new AXI4WD(wdataW)))
-  val wr = Flipped(Decoupled(new AXI4WR(idW)))
+  val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WR(idW)))))
   val ar = Flipped(Decoupled(new AXI4RA(idW, addrW)))
-  val dr = Flipped(Decoupled(new AXI4RD(idW, rdataW)))
-
-  /** Status fields indicating support for USER and REGION signals */
-  val has_user = false
-  val has_region = false
+  val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RD(idW, rdataW)))))
 }
-case class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveInterface(idw, addrW, dataW, dataW)
-// TODO: Add other extensions
+class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW, dataW)
+class AXI4SlaveUser(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW, dataW) {
+  override val aw = Flipped(Decoupled(new AXI4WAUser(idW, addrW)))
+  override val dw = Flipped(Decoupled(new AXI4WDUser(dataW)))
+  override val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WRUser(idW)))))
+  override val ar = Flipped(Decoupled(new AXI4RAUser(idW, addrW)))
+  override val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RDUser(idW, dataW)))))
+}
