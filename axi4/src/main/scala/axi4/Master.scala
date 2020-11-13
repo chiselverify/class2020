@@ -18,7 +18,7 @@ import chisel3._
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class Master(idW: Int, addrW: Int, dataW: Int) extends Module {
+abstract class Master(val idW: Int, val addrW: Int, val dataW: Int) extends Module {
   val io = IO(new AXI4Master(idW, addrW, dataW))
 }
 
@@ -30,6 +30,6 @@ abstract class Master(idW: Int, addrW: Int, dataW: Int) extends Module {
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class MasterUser(idW: Int, addrW: Int, dataW: Int) extends Master(idW, addrW, dataW) {
+abstract class MasterUser(override val idW: Int, override val addrW: Int, override val dataW: Int) extends Master(idW, addrW, dataW) {
   override val io = IO(new AXI4MasterUser(idW, addrW, dataW))
 }

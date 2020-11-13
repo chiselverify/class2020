@@ -18,7 +18,7 @@ import chisel3._
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class Slave(idW: Int, addrW: Int, dataW: Int) extends Module {
+abstract class Slave(val idW: Int, val addrW: Int, val dataW: Int) extends Module {
   val io = IO(new AXI4Slave(idW, addrW, dataW))
 }
 
@@ -30,6 +30,6 @@ abstract class Slave(idW: Int, addrW: Int, dataW: Int) extends Module {
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class SlaveUser(idW: Int, addrW: Int, dataW: Int) extends Slave(idW, addrW, dataW) {
+abstract class SlaveUser(override val idW: Int, override val addrW: Int, override val dataW: Int) extends Slave(idW, addrW, dataW) {
   override val io = IO(new AXI4SlaveUser(idW, addrW, dataW))
 }
