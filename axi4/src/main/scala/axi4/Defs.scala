@@ -74,7 +74,7 @@ trait UserSignal {
  * @param idW the width of the AWID signal in bits
  * @param addrW the width of the AWADDR signal in bits
  */
-abstract class AXI4WABase(idW: Int, addrW: Int) extends Bundle {
+abstract class AXI4WABase(val idW: Int, val addrW: Int) extends Bundle {
   require(idW > 0, "the id width must be a positive integer")
   require(addrW > 0, "the address width must be a positive integer")
   val id      = Output(UInt(idW.W))
@@ -97,7 +97,7 @@ class AXI4WAUser(idW: Int, addrW: Int) extends AXI4WA(idW, addrW) with UserSigna
  * 
  * @param dataW the width of the WDATA signal in bits
  */
-abstract class AXI4WDBase(dataW: Int) extends Bundle {
+abstract class AXI4WDBase(val dataW: Int) extends Bundle {
   require(dataW > 0, "the data width must be a positive integer")
   require(isPow2(dataW / 8), "the data width must be a power of 2 multiple of bytes")
   val data    = Output(UInt(dataW.W))
@@ -113,7 +113,7 @@ class AXI4WDUser(dataW: Int) extends AXI4WD(dataW) with UserSignal
  * 
  * @param idW the width of the BID signal in bits
  */
-abstract class AXI4WRBase(idW: Int) extends Bundle {
+abstract class AXI4WRBase(val idW: Int) extends Bundle {
   require(idW > 0, "the id width must be a positive integer")
   val id      = Input(UInt(idW.W))
   val resp    = Input(UInt(2.W))
@@ -128,7 +128,7 @@ class AXI4WRUser(idW: Int) extends AXI4WR(idW) with UserSignal
  * @param idW the width of the ARID signal in bits
  * @param addrW the width of the ARADDR signal in bits
  */
-abstract class AXI4RABase(idW: Int, addrW: Int) extends Bundle {
+abstract class AXI4RABase(val idW: Int, val addrW: Int) extends Bundle {
   require(idW > 0, "the id width must be a positive integer")
   require(addrW > 0, "the address width must be a positive integer")
   val id      = Output(UInt(idW.W))
@@ -152,7 +152,7 @@ class AXI4RAUser(idW: Int, addrW: Int) extends AXI4RA(idW, addrW) with UserSigna
  * @param idW the width of the RID signal in bits
  * @param dataW the width of the RDATA signal in bits
  */
-abstract class AXI4RDBase(idW: Int, dataW: Int) extends Bundle {
+abstract class AXI4RDBase(val idW: Int, val dataW: Int) extends Bundle {
   require(idW > 0, "the id width must be a positive integer")
   require(isPow2(dataW / 8), "the data width must be a power of 2 multiple of bytes")
   val id      = Input(UInt(idW.W))
@@ -171,7 +171,7 @@ class AXI4RDUser(idW: Int, dataW: Int) extends AXI4RD(idW, dataW) with UserSigna
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class AXI4MasterBase(idW: Int, addrW: Int, dataW: Int) extends Bundle {
+abstract class AXI4MasterBase(val idW: Int, val addrW: Int, val dataW: Int) extends Bundle {
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -203,7 +203,7 @@ class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4Master(idW, a
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
  */
-abstract class AXI4SlaveBase(idW: Int, addrW: Int, dataW: Int) extends Bundle {  
+abstract class AXI4SlaveBase(val idW: Int, val addrW: Int, val dataW: Int) extends Bundle {  
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel

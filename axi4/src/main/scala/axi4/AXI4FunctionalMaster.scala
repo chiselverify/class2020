@@ -18,6 +18,7 @@ import scala.util.Random
  * @param dut a slave DUT
  * 
  * @note [[initialize]] method must be called before any transactions are started
+ * @note [[close]] method must be called after a test to ensure no Chiseltest thread errors
  */
 class AXI4FunctionalMaster[T <: Slave](dut: T) {
   /** DUT information */
@@ -40,22 +41,64 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] var inFlightReads = Seq[ReadTransaction]()
   private[this] var readValues = Seq[Seq[BigInt]]()
   private[this] var responses = Seq[Response]()
-  private[this] val respT = fork { respHandler() }
+  private[this] var respT = fork { }
+  private[this] var lastWAddrT = fork { }
+  private[this] var lastWT = fork { }
+  private[this] var lastRAddrT = fork { }
+  private[this] var lastRT = fork { }
   private[this] val rng = new Random(42)
+
+  /** Check for in-flight operations
+   *
+   * @return Boolean
+   */
+  def hasInflightOps() = inFlightReads.length > 0 || inFlightWrites.length > 0
 
   /** Watch the response channel
    * 
    * @note never call this method explicitly
    */
   private[this] def respHandler() = {
-    while (true) {
-      wr.ready.poke(false.B)
-      if (wr.valid.peek.isLit()) {
-        wr.ready.poke(true.B)
-        val r = new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue)
-        responses = responses :+ r
-      }
+    println("New response handler")
+
+    /** Indicate that interface is ready and wait for response */
+    wr.ready.poke(true.B)
+    while (!wr.valid.peek.isLit) {
       clk.step()
+    }
+    responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
+    wr.ready.poke(false.B)
+  }
+
+  /** Handle the write address channel
+   * 
+   * @note never call this method explicitly
+   */
+  private[this] def writeAddrHandler(addr: BigInt, id: BigInt, len: Int, size: Int, burst: UInt, lock: Bool, cache: UInt, prot: UInt, qos: UInt, region: UInt): Unit = {
+    println(s"New write address handler for addr = $addr")
+
+    /** Write address to slave */
+    aw.valid.poke(true.B)
+    aw.bits.id.poke(id.U)
+    aw.bits.addr.poke(addr.U)
+    aw.bits.len.poke(len.U)
+    aw.bits.size.poke(size.U)
+    aw.bits.burst.poke(burst)
+    aw.bits.lock.poke(lock)
+    aw.bits.cache.poke(cache)
+    aw.bits.prot.poke(prot)
+    aw.bits.qos.poke(qos)
+    aw.bits.region.poke(region)
+    do {
+      clk.step()
+    } while (!aw.ready.peek.isLit)
+    clk.step()
+    aw.valid.poke(false.B)
+
+    /** Fork new write handler */
+    lastWT = fork {
+      lastWT.join()
+      writeHandler()
     }
   }
 
@@ -64,22 +107,59 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note never call this method explicitly
    */
   private[this] def writeHandler(): Unit = {
-    while (!inFlightWrites.head.complete) {
-      dw.valid.poke(false.B)
-      if (dw.ready.peek.isLit) {
-        dw.valid.poke(true.B)
-        val (data, strb, last) = inFlightWrites.head.next
-        dw.bits.data.poke(data)
-        dw.bits.strb.poke(strb)
-        dw.bits.last.poke(last)
-      }
-      clk.step()
+    println("New write handler")
 
-      if (inFlightWrites.head.complete) {
-        inFlightWrites = inFlightWrites.tail
-        if (inFlightWrites.length == 0)
-          return
-      }
+    /** Write data to slave */
+    while (!inFlightWrites.head.complete) {
+      dw.valid.poke(true.B)
+      val (data, strb, last) = inFlightWrites.head.next
+      dw.bits.data.poke(data)
+      dw.bits.strb.poke(strb)
+      dw.bits.last.poke(last)
+      do {
+        clk.step()
+      } while (!dw.ready.peek.isLit)
+      clk.step()
+    }
+    dw.valid.poke(false.B)
+    inFlightWrites = inFlightWrites.tail
+
+    /** Fork new response handler thread */
+    respT = fork {
+      respT.join()
+      respHandler()
+    }
+  }
+
+  /** Handle the read address channel
+   * 
+   * @note never call this method explicitly
+   */
+  private[this] def readAddrHandler(addr: BigInt, id: BigInt, len: Int, size: Int, burst: UInt, lock: Bool, cache: UInt, prot: UInt, qos: UInt, region: UInt): Unit = {
+    println(s"New read address handler for addr = $addr")
+
+    /** Write address to slave */
+    ar.valid.poke(true.B)
+    ar.bits.id.poke(id.U)
+    ar.bits.addr.poke(addr.U)
+    ar.bits.len.poke(len.U)
+    ar.bits.size.poke(size.U)
+    ar.bits.burst.poke(burst)
+    ar.bits.lock.poke(lock)
+    ar.bits.cache.poke(cache)
+    ar.bits.prot.poke(prot)
+    ar.bits.qos.poke(qos)
+    ar.bits.region.poke(region)
+    do {
+      clk.step()
+    } while (!ar.ready.peek.isLit)
+    clk.step()
+    ar.valid.poke(false.B)
+
+    /** Fork new read handler */
+    lastRT = fork {
+      lastRT.join()
+      readHandler()
     }
   }
 
@@ -97,16 +177,11 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
         if (resp == ResponseEncodings.Decerr || resp == ResponseEncodings.Slverr)
           println(s"[Error] reading failed with response $resp")
         inFlightReads.head.add(dr.bits.data.peek.litValue)
-
-        // If this was the last transfer, finalize this transaction
-        if (dr.bits.last.isLit) {
-          readValues = readValues :+ inFlightReads.head.data
-          inFlightReads = inFlightReads.tail
-          if (inFlightReads.length == 0) return
-        }
       }
       clk.step()
     }
+    readValues = readValues :+ inFlightReads.head.data
+    inFlightReads = inFlightReads.tail
   }
 
   /** Initialize the interface (reset) 
@@ -151,9 +226,30 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
 
     /** Data read */
     dr.ready.poke(false.B)
-    
+
+    /** Reset slave device controller */
+    resetn.poke(false.B)
+    clk.step()
+    resetn.poke(true.B)
+
     /** Set initialized flag */
     isInit = true
+  }
+
+  /** Close the interface (shutdown)
+   * 
+   * @note MUST be called after a test to ensure no Chiseltest thread errors
+   */
+  def close() = {
+    /** Join all threads */
+    respT.join()
+    lastWAddrT.join()
+    lastWT.join()
+    lastRAddrT.join()
+    lastRT.join()
+
+    /** Reset initialized flag */
+    isInit = false
   }
 
   /** Start a write transaction to the given address
@@ -226,26 +322,10 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     inFlightWrites = inFlightWrites :+ (new WriteTransaction(addr, data, dataW, size, burst))
 
     /** Write address to slave */
-    while (!aw.ready.peek.isLit) {
-      clk.step()
+    lastWAddrT = fork {
+      lastWAddrT.join()
+      writeAddrHandler(addr, id, len, size, burst, lock, cache, prot, qos, region)
     }
-    aw.valid.poke(true.B)
-    aw.bits.id.poke(id.U)
-    aw.bits.addr.poke(addr.U)
-    aw.bits.len.poke(len.U)
-    aw.bits.size.poke(size.U)
-    aw.bits.burst.poke(burst)
-    aw.bits.lock.poke(lock)
-    aw.bits.cache.poke(cache)
-    aw.bits.prot.poke(prot)
-    aw.bits.qos.poke(qos)
-    aw.bits.region.poke(region)
-    clk.step()
-    aw.valid.poke(false.B)
-
-    /** If no writes are in-flight, fork a new handler */
-    if (inFlightWrites.length == 1)
-      fork { writeHandler() }
   }
 
   /** Start a write transaction to the given address
@@ -308,26 +388,10 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     inFlightReads = inFlightReads :+ (new ReadTransaction(len))
 
     /** Write address to slave */
-    while (!ar.ready.peek.isLit) {
-      clk.step()
+    lastRAddrT = fork {
+      lastRAddrT.join()
+      readAddrHandler(addr, id, len, size, burst, lock, cache, prot, qos, region)
     }
-    ar.valid.poke(true.B)
-    ar.bits.id.poke(id.U)
-    ar.bits.addr.poke(addr.U)
-    ar.bits.len.poke(len.U)
-    ar.bits.size.poke(size.U)
-    ar.bits.burst.poke(burst)
-    ar.bits.lock.poke(lock)
-    ar.bits.cache.poke(cache)
-    ar.bits.prot.poke(prot)
-    ar.bits.qos.poke(qos)
-    ar.bits.region.poke(region)
-    clk.step()
-    ar.valid.poke(false.B)
-
-    /** If no reads are in-flight, fork a new handler */
-    if (inFlightReads.length == 1)
-      fork { readHandler() }
   }
 
   /** Check for write response 

@@ -3,8 +3,8 @@ This project focuses on implementation of AXI4 master interface definitions and 
 
 ## TODO
 - Implement basic interface tests
-- Implement small test example
 - Evaluate functional master
+  - Use cover groups
 
 ### Extras
 - Functional AXI slave (like above)

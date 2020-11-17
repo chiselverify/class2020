@@ -15,7 +15,6 @@ trait Transaction {
   def complete: Boolean
 }
 
-
 /** Write transaction
  *
  * @param addr start write address
@@ -33,15 +32,22 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
   private[this] var aligned = addr == alignedAddress
   private[this] var address = addr
   private[this] var count = 0
+
+  /** Get next (data, strb, last) tuple
+   * 
+   * @return (data, strb, last) tuple
+   * 
+   * @note has side effect on internal index count
+   */
   def next() = {
-    // Strobe calculation
+    /** Strobe calculation */
     val offset = (address / dataW) * dataW
     val lowerByteLane = address - offset
     val upperByteLane = if (aligned) lowerByteLane + numBytes-1 else alignedAddress + numBytes-1 - offset
     def within(x: Int) = x >= lowerByteLane && x <= upperByteLane
-    val strb = (0 until (dataW/8)).foldLeft("") { (acc, elem) => if (within(elem)) "1"+acc else "0"+acc }.asUInt
+    val strb = ("b"+(0 until (dataW/8)).foldRight("") { (elem, acc) => if (within(elem)) acc + "1" else acc + "0" }).asUInt
 
-    // Update address
+    /** Update address */
     if (burst != BurstEncodings.Fixed) {
       if (aligned) {
         address += numBytes
@@ -57,7 +63,7 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
     }
     count += 1
 
-    // Return data to write
+    /** Return data to write */
     (data(count-1).U, strb, complete.B)
   }
   def complete = data.length == count
@@ -69,6 +75,13 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
  */
 class ReadTransaction(len: Int) extends Transaction {
   var data = Seq[BigInt]()
+
+  /** Add element to data sequence
+   *
+   * @param v value to add
+   * 
+   * @note has side effect on internal data sequence
+   */
   def add(v: BigInt) = {
     data = data :+ v
   }
