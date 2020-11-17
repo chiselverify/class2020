@@ -1,5 +1,6 @@
 package concurrent
 
+
 object conAssert {
   /** Checks for a condition to be valid in the circuit at all times, or within
     * the specified amount of clock cycles. If the condition evaluates to false,
@@ -27,7 +28,6 @@ object conAssert {
         
       } else {
         System.out.println(message) //Printer uanset
-        throw new Exception("This is not a runTime haha")
       }
     }
   }
