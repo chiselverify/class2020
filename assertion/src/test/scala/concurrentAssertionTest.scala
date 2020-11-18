@@ -1,34 +1,32 @@
 import org.scalatest._
-import gtfo._
+import assertionTiming._
 import chisel3._
 import chiseltest._
 
 class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with Matchers {
   behavior of "The mainClass"
 
-  it should "test" in {
+  it should "test an assertion to always be true" in {
     test(new mainClass()) {
       dut => {
-        def writer() {
-            assertAlways((dut.io.c.peek.litValue().intValue() == 1), "Error", 20)
-        }
-        def eliminater() {
-            
-            dut.clock.step(1)
-            dut.io.s.poke(0.U)
-            
-            
-        }
-
+        
         dut.io.s.poke(4.U)
         dut.clock.step(1)
-        assertOneHot(4.U, "Error", 20)
-        dut.clock.step(1)
-        dut.io.s.poke(0.U)
-        /*fork {
-            writer()
+        val t = assertAlways(dut, () => dut.io.c.peek.litValue == 4, "Error", 20)
+        
+        timescope {
+          dut.clock.step(1)
+          dut.io.s.poke(4.U)
+          System.out.println("Start")
+          dut.clock.step(1)
         }
-        eliminater()*/
+          
+        timescope {
+        dut.clock.step(100)
+        System.out.println("Slut")
+        //dut.io.s.poke(4.U)
+        //t.join
+        }
       }
     }
   }
