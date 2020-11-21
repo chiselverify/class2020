@@ -19,6 +19,8 @@ import chisel3._
   *
   * @author Victor Alexander Hansen, s194027@student.dtu.dk
   * @author Niels Frederik Flemming Holm Frandsen, s194053@student.dtu.dk
+  *
+  * Works only with registers
   */
 
 /** assertNever():
@@ -30,7 +32,6 @@ object assertNever {
         fork {
             for (i <- 0 until cycles) {
                 assert(!cond(), message)
-                System.out.println("Test")
                 dut.clock.step(1)
             }
         }
@@ -46,7 +47,6 @@ object assertAlways {
         fork {
             for (i <- 0 until cycles) {
                 assert(cond(), message)
-                System.out.println("Test")
                 dut.clock.step(1)
             }
         }
@@ -57,17 +57,28 @@ object assertAlways {
   * Checks for the argument condition to be true just once within the number of
   * clock cycles passed, a liveness property. Fails if the condition is not true
   * at least once within the window of cycles
+  *
+  * Must be joined
   */
 object assertEventually {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
+        var i = 0
         fork {
-            for (i <- 0 until cycles) {
+            /*for (i <- 0 until cycles) {
                 if (cond()) {
                     break
-                } else {
+                } else if (i == cycles - 1){
                     assert(false, message)
                 }
+                dut.clock.step(1)
+            }*/
+            while (!cond()) {
+                if (i == cycles-1) {
+                    assert(false, message)
+                }
+                i += 1
+                dut.clock.step(1)
             }
         }
     }
@@ -78,12 +89,14 @@ object assertEventually {
   * clock cycles passed, and hold true until the last cycle. Fails if the 
   * condition is not true at least once within the window of cycles, or if
   * condition becomes false after it becomes true.
+  *
+  * Must be joined
   */
 object assertEventuallyAlways {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
-        var k = 0
-        for (i <- 0 until cycles) {
+        var i = 0
+        /*for (i <- 0 until cycles) {
             if (cond()) {
                 break
             } else {
@@ -91,18 +104,29 @@ object assertEventuallyAlways {
                 assert(false, message)
             }
             k += 1
-        }
+        }*/
 
-        for (j <- 0 until cycles - k) {
-            assert(cond(), message)
+        fork {
+            while (!cond()) {
+                if (i == cycles-1) {
+                    assert(false, message)
+                }
+                i += 1
+                dut.clock.step(1)
+            }
+
+            for (j <- 0 until cycles - i) {
+                assert(cond(), message)
+                dut.clock.step(1)
+            }
         }
     }
 }
 
 /** assertOneHot():
-  * checks for one hot encoding violations
+  * checks if exactly one bit of the expression is high
   */
-/*object assertOneHot {
+object assertOneHot {
     def apply(cond: UInt, message: String, cycles: Int) {
 
         for (i <- 0 until cycles) {
@@ -110,4 +134,3 @@ object assertEventuallyAlways {
         }
     }
 }
-**/
