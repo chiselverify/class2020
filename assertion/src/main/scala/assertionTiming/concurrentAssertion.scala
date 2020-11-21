@@ -29,6 +29,8 @@ import chisel3._
 object assertNever {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
         fork {
             for (i <- 0 until cycles) {
                 assert(!cond(), message)
@@ -44,8 +46,10 @@ object assertNever {
 object assertAlways {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
         fork {
-            for (i <- 0 until cycles) {
+            for (i <- 1 until cycles) {
                 assert(cond(), message)
                 dut.clock.step(1)
             }
@@ -63,7 +67,10 @@ object assertAlways {
 object assertEventually {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
-        var i = 0
+        var i = 1
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
+
         fork {
             /*for (i <- 0 until cycles) {
                 if (cond()) {
@@ -95,7 +102,10 @@ object assertEventually {
 object assertEventuallyAlways {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
-        var i = 0
+        var i = 1
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
+
         /*for (i <- 0 until cycles) {
             if (cond()) {
                 break
@@ -129,8 +139,10 @@ object assertEventuallyAlways {
 object assertOneHot {
     def apply(cond: UInt, message: String, cycles: Int) {
 
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
         for (i <- 0 until cycles) {
-            assert(cond == 1.U << cond/2.U)
+            assert(cond())
         }
     }
 }
