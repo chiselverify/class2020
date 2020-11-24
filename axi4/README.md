@@ -2,9 +2,7 @@
 This project focuses on implementation of AXI4 master interface definitions and a small framework providing support for all of the defined transactions from the AXI master's point of view in the protocol.
 
 ## TODO
-- Implement basic interface tests
 - Evaluate functional master
-  - Use cover groups
 
 ### Extras
 - Functional AXI slave (like above)
@@ -66,7 +64,7 @@ Additionally, two global signals are used (see page A2-28)
 
 Channel descriptions are available in `./src/main/scala/axi4/Defs.scala`. DUVs must conform to the signal names and interfaces provided to function correctly - hence, their IO should extend either the available master or slave interfaces. To enable this more easily, an AXI master can simply extend the Master class found in `./src/main/scala/axi4/Master.scala`, and vice-versa for AXI slaves for which the relevant class is found in `./src/main/scala/axi4/Slave.scala`. 
 
-An example of a black-boxed block-RAM with AXI interface is provided in `./src/main/scala/AXI4Memory.scala` - note, however, that due to copyright of the IP source code, you will need to generate the appropriate IP block within Xilinx Vivado to use the blackbox.
+An example of a black-boxed block-RAM with AXI interface is provided in `./src/main/scala/VivadoAXIMemory.scala` - note, however, that due to copyright of the IP source code, you will need to generate the appropriate IP block within Xilinx Vivado to use the blackbox. A basic tester is provided in `./src/test/scala/VivadoAXIMemoryTester.scala`. 
 
 ### References
 The full public protocol specification is available from ARM [here](https://developer.arm.com/documentation/ihi0022/e/) and in PDF format [here](http://www.gstitt.ece.ufl.edu/courses/fall15/eel4720_5721/labs/refs/AXI4_specification.pdf). A good video introduction is available from [ARM's YouTube channel](https://www.youtube.com/watch?v=7Vl9JrGgNwk).
