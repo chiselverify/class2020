@@ -44,7 +44,7 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
     val offset = (address / dataW) * dataW
     val lowerByteLane = address - offset
     val upperByteLane = if (aligned) lowerByteLane + numBytes-1 else alignedAddress + numBytes-1 - offset
-    def within(x: Int) = x >= lowerByteLane && x <= upperByteLane
+    def within(x: Int) = x >= 0 && x <= (upperByteLane - lowerByteLane)
     val strb = ("b"+(0 until (dataW/8)).foldRight("") { (elem, acc) => if (within(elem)) acc + "1" else acc + "0" }).asUInt
 
     /** Update address */

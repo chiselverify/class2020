@@ -54,22 +54,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    */
   def hasInflightOps() = inFlightReads.length > 0 || inFlightWrites.length > 0
 
-  /** Watch the response channel
-   * 
-   * @note never call this method explicitly
-   */
-  private[this] def respHandler() = {
-    println("New response handler")
-
-    /** Indicate that interface is ready and wait for response */
-    wr.ready.poke(true.B)
-    while (!wr.valid.peek.isLit) {
-      clk.step()
-    }
-    responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
-    wr.ready.poke(false.B)
-  }
-
   /** Handle the write address channel
    * 
    * @note never call this method explicitly
@@ -89,9 +73,9 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     aw.bits.prot.poke(prot)
     aw.bits.qos.poke(qos)
     aw.bits.region.poke(region)
-    do {
+    while (!aw.ready.peek.litToBoolean) {
       clk.step()
-    } while (!aw.ready.peek.isLit)
+    }
     clk.step()
     aw.valid.poke(false.B)
 
@@ -110,15 +94,16 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     println("New write handler")
 
     /** Write data to slave */
+    dw.valid.poke(true.B)
     while (!inFlightWrites.head.complete) {
-      dw.valid.poke(true.B)
       val (data, strb, last) = inFlightWrites.head.next
+      println("Write " + data.litValue + " with strobe " + strb.toString + " and last " + last.litToBoolean)
       dw.bits.data.poke(data)
       dw.bits.strb.poke(strb)
       dw.bits.last.poke(last)
-      do {
+      while (!dw.ready.peek.litToBoolean) {
         clk.step()
-      } while (!dw.ready.peek.isLit)
+      }
       clk.step()
     }
     dw.valid.poke(false.B)
@@ -129,6 +114,22 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
       respT.join()
       respHandler()
     }
+  }
+
+  /** Watch the response channel
+   * 
+   * @note never call this method explicitly
+   */
+  private[this] def respHandler() = {
+    println("New response handler")
+
+    /** Indicate that interface is ready and wait for response */
+    wr.ready.poke(true.B)
+    while (!wr.valid.peek.litToBoolean) {
+      clk.step()
+    }
+    responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
+    wr.ready.poke(false.B)
   }
 
   /** Handle the read address channel
@@ -150,9 +151,9 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     ar.bits.prot.poke(prot)
     ar.bits.qos.poke(qos)
     ar.bits.region.poke(region)
-    do {
+    while (!ar.ready.peek.litToBoolean) {
       clk.step()
-    } while (!ar.ready.peek.isLit)
+    }
     clk.step()
     ar.valid.poke(false.B)
 
@@ -168,20 +169,21 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note never call this method explicitly
    */
   private[this] def readHandler(): Unit = {
+    println("New read handler")
+
+    /** Read data from slave */
+    dr.ready.poke(true.B)
     while (!inFlightReads.head.complete) {
-      dr.ready.poke(false.B)
-      if (dr.valid.peek.isLit) {
-        // Accept read data
-        dr.ready.poke(true.B)
-        val resp = dr.bits.resp.peek
-        if (resp == ResponseEncodings.Decerr || resp == ResponseEncodings.Slverr)
-          println(s"[Error] reading failed with response $resp")
-        inFlightReads.head.add(dr.bits.data.peek.litValue)
+      if (dr.valid.peek.litToBoolean) {
+        val (data, resp, last) = (dr.bits.data.peek, dr.bits.resp.peek, dr.bits.last.peek)
+        println(s"Read " + data.litValue + " with response " + resp.litValue + " and last " + last.litToBoolean)
+        inFlightReads.head.add(data.litValue)
       }
       clk.step()
     }
     readValues = readValues :+ inFlightReads.head.data
     inFlightReads = inFlightReads.tail
+    dr.ready.poke(false.B)
   }
 
   /** Initialize the interface (reset) 
@@ -259,7 +261,7 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @param id optional id, defaults to ID 0
    * @param len optional burst length, defaults to 0 (i.e., 1 beat)
    * @param size optional beat size, defaults to 1 byte
-   * @param burst optional burst type, defaults to INCR
+   * @param burst optional burst type, defaults to FIXED
    * @param lock optional lock type, defaults to normal access
    * @param cache optional memory attribute signal, defaults to device non-bufferable
    * @param prot optional protection type, defaults to non-secure unprivileged data access
@@ -277,7 +279,7 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
       id: BigInt = 0, 
       len: Int = 0, 
       size: Int = 0, 
-      burst: UInt = BurstEncodings.Incr, 
+      burst: UInt = BurstEncodings.Fixed, 
       lock: Bool = LockEncodings.NormalAccess, 
       cache: UInt = MemoryEncodings.DeviceNonbuf, 
       prot: UInt = ProtectionEncodings.DataNsecUpriv, 
@@ -334,7 +336,7 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @param id optional id, defaults to ID 0
    * @param len optional burst length, defaults to 0 (i.e., 1 beat)
    * @param size optional beat size, defaults to 1 byte
-   * @param burst optional burst type, defaults to INCR
+   * @param burst optional burst type, defaults to FIXED
    * @param lock optional lock type, defaults to normal access
    * @param cache optional memory attribute signal, defaults to device non-bufferable
    * @param prot optional protection type, defaults to non-secure unprivileged data access
@@ -350,7 +352,7 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
       id: BigInt = 0, 
       len: Int = 0, 
       size: Int = 0, 
-      burst: UInt = BurstEncodings.Incr, 
+      burst: UInt = BurstEncodings.Fixed, 
       lock: Bool = LockEncodings.NormalAccess, 
       cache: UInt = MemoryEncodings.DeviceNonbuf, 
       prot: UInt = ProtectionEncodings.DataNsecUpriv, 

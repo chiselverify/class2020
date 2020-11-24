@@ -136,5 +136,5 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
 
   /** Clock and reset */
   mem.io.s00_axi_aclk     := clock
-  mem.io.s00_axi_aresetn  := !reset
+  mem.io.s00_axi_aresetn  := reset
 }

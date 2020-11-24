@@ -92,4 +92,72 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         master.close()
     }
   }
+
+  it should "write and read with FIXED transactions" in {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
+      dut =>
+        val master = new AXI4FunctionalMaster(dut)
+        master.initialize()
+
+        // Create write transaction
+        master.createWriteTrx(0, Seq(42), size = 2)
+
+        // Wait for the write to complete (spin on response)
+        var resp = master.checkResponse()
+        while (resp == None) {
+          resp = master.checkResponse()
+          dut.clock.step()
+        }
+        val r = resp match { case Some(r) => r.resp.litValue; case _ => ResponseEncodings.Slverr.litValue }
+        assert(r == 0, "expected write to pass")
+
+        // Create read transaction
+        master.createReadTrx(0, size = 2)
+
+        // Wait for read to complete (spin on read data)
+        var data = master.checkReadData()
+        while (data == None) {
+          data = master.checkReadData()
+          dut.clock.step()
+        }
+        val d = data match { case Some(v) => v; case _ => Seq() }
+        assert(d.length == 1 && d(0) == 42, "read data value is incorrect")
+
+        master.close()
+    }
+  }
+
+  it should "write and read with INCR transactions" in {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
+      dut =>
+        val master = new AXI4FunctionalMaster(dut)
+        master.initialize()
+
+        // Create write transaction
+        master.createWriteTrx(128, Seq.fill(128)(0x7FFFFFFF), len = 0x7F, size = 2, burst = BurstEncodings.Incr)
+
+        // Wait for the write to complete (spin on response)
+        var resp = master.checkResponse()
+        while (resp == None) {
+          resp = master.checkResponse()
+          dut.clock.step()
+        }
+        val r = resp match { case Some(r) => r.resp.litValue; case _ => ResponseEncodings.Slverr.litValue }
+        assert(r == 0, "expected write to pass")
+
+        // Create read transaction
+        master.createReadTrx(128, len = 0x7F, size = 2, burst = BurstEncodings.Incr)
+
+        // Wait for read to complete (spin on read data)
+        var data = master.checkReadData()
+        while (data == None) {
+          data = master.checkReadData()
+          dut.clock.step()
+        }
+        val d = data match { case Some(v) => v; case _ => Seq() }
+        assert(d.foldLeft(true) { (acc, elem) => acc && (elem == 0x7FFFFFFF) }, "read data value is incorrect")
+
+        master.close()
+    }
+  }
 }
