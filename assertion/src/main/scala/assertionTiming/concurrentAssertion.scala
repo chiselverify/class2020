@@ -32,7 +32,7 @@ object assertNever {
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
         fork {
-            for (i <- 0 until cycles) {
+            for (i <- 1 until cycles) {
                 assert(!cond(), message)
                 dut.clock.step(1)
             }
@@ -44,10 +44,12 @@ object assertNever {
   * Checks for the argument condition to be true in the number of cycles passed
   */
 object assertAlways {
-    def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, message: String = "Error", cycles: Int = 1) = {
 
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
+
+        //dut.clock.step(1)
         fork {
             for (i <- 1 until cycles) {
                 assert(cond(), message)
@@ -63,25 +65,26 @@ object assertAlways {
   * at least once within the window of cycles
   *
   * Must be joined
+  * Clock cycle zero is executed as soon as assertionEventually is called. Therefore,
+  * to step to max window of cycles, one must step with regards to the first cycle
+  * already executed (cycle zero)
   */
 object assertEventually {
     def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
 
-        var i = 1
-        // Assertion for single thread clock cycle 0
-        assert(cond(), message)
+        var i = 0
 
         fork {
             /*for (i <- 0 until cycles) {
                 if (cond()) {
-                    break
+                    breakOut
                 } else if (i == cycles - 1){
                     assert(false, message)
                 }
                 dut.clock.step(1)
             }*/
             while (!cond()) {
-                if (i == cycles-1) {
+                if (i == cycles) {
                     assert(false, message)
                 }
                 i += 1
@@ -135,14 +138,37 @@ object assertEventuallyAlways {
 
 /** assertOneHot():
   * checks if exactly one bit of the expression is high
+  * The checker is useful for verifying control circuits,
+  * for example, it can ensure that a finite-state machine
+  * with one-hot encoding operates properly and has exactly
+  * one bit asserted high. In a datapath circuit the checker
+  * can ensure that the enabling conditions for a bus do not
+  * result in bus contention.
   */
 object assertOneHot {
     def apply(cond: UInt, message: String, cycles: Int) {
+        /*var i = 0
+        while (cond > 0.U) {
+            if ((cond & 1.U) == 1.U) {
+                i += 1
+            }
+            cond >> 1
+        }
+        assert(i == 1, "One Hot violation")*/
 
-        // Assertion for single thread clock cycle 0
-        assert(cond(), message)
-        for (i <- 0 until cycles) {
-            assert(cond())
+        val a = 0x8000011;
+        var abin = a.toBinaryString
+        System.out.println(abin)
+        var j = 0
+        val k = '1'
+        for(i <- 0 until 24){
+            if(abin.charAt(i) == k){
+            j += 1
+            System.out.println("fuck")
+            }
+            if(j > 1){
+                assert(false)
+            }
         }
     }
 }

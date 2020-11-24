@@ -13,12 +13,12 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         
         dut.io.s.poke(true.B)
         dut.clock.step(1)
-        assertAlways(dut, () => dut.io.c.peek.litValue == 4, "Error", 20)
+        assertAlways(dut)
       }
     }
   }
 
-  it should "test that assertAlways fails when poking false" in {
+  /*it should "test that assertAlways fails when poking false" in {
     test(new mainClass()) {
       dut => {
         
@@ -52,6 +52,31 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         assertNever(dut, () => dut.io.c.peek.litValue == 4, "Error", 40)
       
         dut.clock.step(41)
+        dut.io.s.poke(true.B)
+        dut.clock.step(1)
+      }
+    }
+  }
+
+  it should "test time depency of clock cycles and what happens, when you change input on clock" in {
+    test(new mainClass()) {
+      dut => {
+        
+        // Test of assertAlways
+        dut.io.s.poke(true.B)
+        dut.clock.step(1)
+        assertAlways(dut, () => dut.io.c.peek.litValue == 4, "Error", 20)
+      
+        dut.clock.step(20)
+        dut.io.s.poke(false.B)
+        dut.clock.step(1)
+
+        // Test of assertNever
+        dut.io.s.poke(false.B)
+        dut.clock.step(1)
+        assertNever(dut, () => dut.io.c.peek.litValue == 4, "Error", 40)
+      
+        dut.clock.step(40)
         dut.io.s.poke(true.B)
         dut.clock.step(1)
       }
@@ -101,9 +126,26 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         t.join
       }
     }
+  }*/
+  
+  it should "test assertEventually passes when truecondition is assertet on last possible cycle" in {
+    test(new mainClass()) {
+      dut => {
+        
+        dut.io.s.poke(false.B)
+        dut.clock.step(1)
+        val t = assertEventually(dut, () => dut.io.c.peek.litValue == 4, "Error", 5)
+
+        dut.clock.step(4)
+        dut.io.s.poke(true.B)
+        dut.clock.step(1)
+        dut.io.s.poke(false.B)
+        t.join
+      }
+    }
   }
 
-  it should "test assertEventually fails when exceeding clock cycles" in {
+  /*it should "test assertEventually fails when exceeding clock cycles" in {
     test(new mainClass()) {
       dut => {
         
@@ -114,9 +156,72 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         t.join
       }
     }
+  }*/
+
+  it should "test if the dut steps correctly" in {
+    test(new dummyDUT()) {
+      dut => {
+        
+        dut.io.a.poke(false.B)
+        dut.io.b.poke(false.B)
+        dut.clock.step(1)
+        val c = assertEventually(dut, () => dut.io.c.peek.litValue == 4, "Error1", 7)
+        val d = assertEventually(dut, () => dut.io.d.peek.litValue == 4, "Error2", 3)
+        dut.clock.step(2)
+        dut.io.b.poke(true.B)
+        dut.clock.step(4)
+        dut.io.a.poke(true.B)
+        c.join
+        d.join
+      }
+    }
   }
 
-  // assertEventuallyAlways
+  it should "test if signals are ignored after becoming true" in {
+    test(new dummyDUT()) {
+      dut => {
+        
+        dut.io.a.poke(false.B)
+        dut.io.b.poke(false.B)
+        dut.clock.step(1)
+        val c = assertEventually(dut, () => dut.io.c.peek.litValue == 4, "Error1", 7)
+        val d = assertEventually(dut, () => dut.io.d.peek.litValue == 4, "Error2", 3)
+        dut.clock.step(1)
+        dut.io.b.poke(true.B)
+        dut.clock.step(1)
+        dut.io.b.poke(false.B)
+        dut.clock.step(3)
+        dut.io.a.poke(true.B)
+        dut.clock.step(1)
+        dut.io.a.poke(false.B)
+        c.join
+        d.join
+      }
+    }
+  }
+
+  it should "test if signals are ignored after cycle window" in {
+    test(new dummyDUT()) {
+      dut => {
+        
+        dut.io.a.poke(false.B)
+        dut.io.b.poke(false.B)
+        dut.clock.step(1)
+        val c = assertEventually(dut, () => dut.io.c.peek.litValue == 4, "Error1", 7)
+        val d = assertEventually(dut, () => dut.io.d.peek.litValue == 4, "Error2", 3)
+        dut.clock.step(2)
+        dut.io.b.poke(true.B)
+        dut.clock.step(4)
+        dut.io.a.poke(true.B)
+        dut.clock.step(1)
+        dut.io.a.poke(false.B)
+        c.join
+        d.join
+      }
+    }
+  }
+
+  /*// assertEventuallyAlways
   it should "test assertEventuallyAlways pass" in {
     test(new mainClass()) {
       dut => {
@@ -149,18 +254,5 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         t.join
       }
     }
-  }
+  }*/
 }
-
-/*class concurrentAssertionTest2 extends FlatSpec with ChiselScalatestTester with Matchers {
-  behavior of "The oneHot"
-  // assertOneHot
-  it should "pass if only one bit is high" in {
-    test(new oneHot()) {
-      dut => {
-        
-
-      }
-    }
-  }
-}*/

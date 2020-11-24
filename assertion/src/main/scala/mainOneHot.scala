@@ -4,19 +4,15 @@ import concurrent._
 
 // File for testing in Assertion with timing project
 // Compiles, but simple test does not yet work
-class mainClass extends Module {
+class mainOneHot extends Module {
     val io = IO(new Bundle {
-        val s = Input(Bool())
+        val s = Input(UInt(4.W))
         val c = Output(UInt(4.W))
     })
 
-    
-    val reg = RegInit(0.U (4.W))
-
     reg := Mux(io.s, 4.U, 0.U)
+
     io.c := reg
 
-    //conAssert(true.B, "Error", 10)
+    
 }
-
-object main extends App{}
