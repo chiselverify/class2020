@@ -23,7 +23,7 @@ trait Transaction {
  * @param size optional beat size, defaults to 1 byte
  * @param burst optional burst type, defaults to INCR
  */
-class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 0, burst: UInt = BurstEncodings.Incr) {
+class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 0, burst: UInt = BurstEncodings.Incr) extends Transaction {
   private[this] val numBytes = 1 << size
   private[this] val dtsize = numBytes * data.length
   private[this] val lowerBoundary = (addr / dtsize) * dtsize

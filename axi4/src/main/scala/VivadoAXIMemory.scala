@@ -9,7 +9,6 @@
 import axi4._
 import chisel3._
 import chisel3.util._
-import chisel3.experimental._
 
 /** Vivado IP BRAM with full AXI4 interface */
 class mymem extends BlackBox with HasBlackBoxResource {
@@ -68,8 +67,10 @@ class mymem extends BlackBox with HasBlackBoxResource {
     val s00_axi_aresetn   = Input(Reset())
   })
 
-  /** Verilog file in /src/main/resources - top file is mymem.v */
+  /** Verilog files in /src/main/resources - top file is mymem.v */
   addResource("/mymem.v")
+  addResource("/myaximem_v1_0.v")
+  addResource("/myaximem_v1_0_S00_AXI.v")
 }
 
 /** Wrapper for mymem */
@@ -135,5 +136,5 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
 
   /** Clock and reset */
   mem.io.s00_axi_aclk     := clock
-  mem.io.s00_axi_aresetn  := reset
+  mem.io.s00_axi_aresetn  := !reset
 }

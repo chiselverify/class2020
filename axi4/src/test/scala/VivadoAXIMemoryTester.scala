@@ -9,13 +9,15 @@
 import axi4._
 import chisel3._
 import chiseltest._
+import chiseltest.experimental.TestOptionBuilder._
+import chiseltest.internal.VerilatorBackendAnnotation
 import org.scalatest._
 
 class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Matchers {
   behavior of "AXI4 BRAM"
   
   it should "initialize" in {
-    test(new VivadoAXIMemory()) {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
         master.initialize()
@@ -23,33 +25,70 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     }
   }
 
-  it should "write and read" in {
-    test(new VivadoAXIMemory()) {
+  it should "write and read manually" in {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
         master.initialize()
-        master.createWriteTrx(0, Seq[BigInt](42), size = 2)
-        var r = master.checkResponse()
+
+        def printCheck() = {
+          println("AWREADY = " + dut.io.aw.ready.peek.litToBoolean)
+          println("WREADY = " + dut.io.dw.ready.peek.litToBoolean)
+          println("BVALID = " + dut.io.wr.valid.peek.litToBoolean)
+          println("ARREADY = " + dut.io.ar.ready.peek.litToBoolean)
+          println("RVALID = " + dut.io.dr.valid.peek.litToBoolean)
+        }
+
+        // Set some initial values on the necessary signals
+        dut.io.dw.bits.data.poke(42.U)
+        dut.io.dw.bits.strb.poke("b1111".U)
+        dut.io.dw.bits.last.poke(true.B)
+        printCheck()
+
+        // Write address
+        dut.io.aw.valid.poke(true.B)
         do {
           dut.clock.step()
-          r = master.checkResponse()
-        } while (r == None)
-        var resp = r match {
-          case Some(r) => r.resp.litValue
-          case _ => 0
-        }
-        println(s"Got response code $resp")
-        master.createReadTrx(0, size = 2)
-        var v = master.checkReadData()
+        } while (!dut.io.aw.ready.peek.litToBoolean)
+        printCheck()
+        dut.clock.step()
+        dut.io.aw.valid.poke(false.B)
+
+        // Write some data
+        dut.io.dw.valid.poke(true.B)
         do {
           dut.clock.step()
-          v = master.checkReadData()
-        } while (v == None)
-        var values = v match {
-          case Some(v) => v
-          case _ => Seq[BigInt](-1)
+        } while (!dut.io.dw.ready.peek.litToBoolean) 
+        printCheck()
+        dut.clock.step()
+        dut.io.dw.valid.poke(false.B)
+
+        // Fetch response
+        dut.io.wr.ready.poke(true.B)
+        while (!dut.io.wr.valid.peek.litToBoolean) {
+          dut.clock.step()
         }
-        println(s"Got read data $values")
+        printCheck()
+        val r = dut.io.wr.bits.resp.peek.litValue
+        println(s"Got response $r")
+
+        // Read address
+        dut.io.ar.valid.poke(true.B)
+        do { 
+          dut.clock.step()
+        } while (!dut.io.ar.ready.peek.litToBoolean)
+        printCheck()
+        dut.clock.step()
+        dut.io.ar.valid.poke(false.B)
+
+        // Read some data
+        dut.io.dr.ready.poke(true.B)
+        while (!dut.io.dr.valid.peek.litToBoolean) {
+          dut.clock.step()
+        }
+        printCheck()
+        dut.io.dr.bits.data.expect(42.U)
+
         master.close()
     }
   }
