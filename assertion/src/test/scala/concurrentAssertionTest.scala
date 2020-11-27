@@ -18,7 +18,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
     }
   }
 
-  /*it should "test that assertAlways fails when poking false" in {
+  it should "test that assertAlways fails when poking false" in {
     test(new mainClass()) {
       dut => {
         
@@ -219,7 +219,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         d.join
       }
     }
-  }*/
+  }
 
   // assertEventuallyAlways
   it should "test assertEventuallyAlways pass" in {
@@ -228,7 +228,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         
         dut.io.s.poke(false.B)
         dut.clock.step(1)
-        val t = assertEventuallyAlways(dut, () => dut.io.c.peek.litValue == 4, 20, "Error")
+        //val t = assertEventuallyAlways(dut, () => dut.io.c.peek.litValue == 4, 20, "Error")
 
         dut.clock.step(1)
         dut.io.s.poke(true.B)
@@ -238,7 +238,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
     }
   }
 
-  /*it should "fail, if cond does not hold true once true" in {
+  it should "fail, if cond does not hold true once true" in {
     test(new mainClass()) {
       dut => {
         
@@ -254,5 +254,5 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         t.join
       }
     }
-  }*/
+  }
 }

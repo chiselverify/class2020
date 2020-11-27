@@ -141,22 +141,36 @@ object assertEventuallyEvent {
 object assertEventuallyAlways {
     def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
-        var i = 1
+        var i = 0
+        var k = 0
 
         fork {
             while (!cond()) {
-                if (i == cycles-1) {
+                if (i == cycles) {
+                    assert(false, message)
+                }
+                i += 1
+                dut.clock.step(1)
+                //Debug
+                k += 1
+                System.out.println("LOOOOOOOOOOOOOOK " + k)
+            }
+
+            for (j <- 0 until cycles - i) {
+                System.out.println("lalalalaaaaaaaaaaaaaaa")
+                assert(cond(), message)
+                dut.clock.step(1)
+            }
+        }
+        /*fork {
+            while (!cond()) {
+                if (i == cycles) {
                     assert(false, message)
                 }
                 i += 1
                 dut.clock.step(1)
             }
-
-            for (j <- 0 until cycles - i) {
-                assert(cond(), message)
-                dut.clock.step(1)
-            }
-        }
+        }*/
     }
 }
 
@@ -185,12 +199,6 @@ object assertEventuallyAlwaysEvent {
 
 /** assertOneHot():
   * checks if exactly one bit of the expression is high
-  * The checker is useful for verifying control circuits,
-  * for example, it can ensure that a finite-state machine
-  * with one-hot encoding operates properly and has exactly
-  * one bit asserted high. In a datapath circuit the checker
-  * can ensure that the enabling conditions for a bus do not
-  * result in bus contention.
   * This can be combined with any of the other assertions
   * because it returns a boolean value.
   */

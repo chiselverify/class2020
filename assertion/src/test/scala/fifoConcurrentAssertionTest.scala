@@ -31,7 +31,7 @@ import chiseltest._
           dut.io.deq.read.poke(false.B)
           dut.io.enq.write.poke(true.B)
           dut.io.enq.din.poke(4.U)
-          val t = assertEventually(dut, ()=>(dut.io.deq.dout.litValue == 4), 8, "Error")
+          val t = assertEventuallyAlways(dut, () => dut.io.deq.dout.peek.litValue == 4, 8, "Error")
           t.join
         }
       }
