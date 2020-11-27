@@ -31,9 +31,23 @@ object assertNever {
     def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         // Assertion for single thread clock cycle 0
-        assert(cond(), message)
+        assert(!cond(), message)
         fork {
             for (i <- 1 until cycles) {
+                assert(!cond(), message)
+                dut.clock.step(1)
+            }
+        }
+    }
+}
+
+object assertNeverEvent {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
+
+        // Assertion for single thread clock cycle 0
+        assert(!cond(), message)
+        fork {
+            while (!event) {
                 assert(!cond(), message)
                 dut.clock.step(1)
             }
@@ -60,12 +74,28 @@ object assertAlways {
     }
 }
 
+// Event based version of assert
+object assertAlwaysEvent {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
+
+        // Assertion for single thread clock cycle 0
+        assert(cond(), message)
+
+        //dut.clock.step(1)
+        fork {
+            while (!event) {
+                assert(cond(), message)
+                dut.clock.step(1)
+            }
+        }
+    }
+}
+
 /** assertEventually():
   * Checks for the argument condition to be true just once within the number of
   * clock cycles passed, a liveness property. Fails if the condition is not true
   * at least once within the window of cycles
   *
-  * Must be joined
   * Clock cycle zero is executed as soon as assertionEventually is called. Therefore,
   * to step to max window of cycles, one must step with regards to the first cycle
   * already executed (cycle zero)
@@ -87,20 +117,31 @@ object assertEventually {
     }
 }
 
+// Event based version of assertEventually
+object assertEventuallyEvent {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
+
+        fork {
+            while (!cond()) {
+                if (event) {
+                    assert(false, message)
+                }
+                dut.clock.step(1)
+            }
+        }
+    }
+}
+
 /** assertEventuallyAlways():
   * Checks for the argument condition to be true within the number of
   * clock cycles passed, and hold true until the last cycle. Fails if the 
   * condition is not true at least once within the window of cycles, or if
   * condition becomes false after it becomes true.
-  *
-  * Must be joined
   */
 object assertEventuallyAlways {
     def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         var i = 1
-        // Assertion for single thread clock cycle 0
-        assert(cond(), message)
 
         fork {
             while (!cond()) {
@@ -112,6 +153,29 @@ object assertEventuallyAlways {
             }
 
             for (j <- 0 until cycles - i) {
+                assert(cond(), message)
+                dut.clock.step(1)
+            }
+        }
+    }
+}
+
+// Event based version of assertEventuallyAlways
+object assertEventuallyAlwaysEvent {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
+
+        var i = 1
+
+        fork {
+            while (!cond()) {
+                if (event) {
+                    assert(false, message)
+                }
+                i += 1
+                dut.clock.step(1)
+            }
+
+            while (!event) {
                 assert(cond(), message)
                 dut.clock.step(1)
             }
@@ -147,5 +211,14 @@ object assertOneHot {
         }
 
         return true
+    }
+}
+
+object assertOnCycle {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
+        fork {
+            dut.clock.step(cycles)
+            assert(cond(), message)
+        }
     }
 }

@@ -15,8 +15,6 @@ class mainClass extends Module {
 
     reg := Mux(io.s, 4.U, 0.U)
     io.c := reg
-
-    //conAssert(true.B, "Error", 10)
 }
 
 object main extends App{}
