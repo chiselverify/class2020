@@ -9,6 +9,7 @@ import chisel3._
   * the specified amount of clock cycles. If the condition evaluates to false,
   * the circuit simulation stops with an error.
   *
+  * @param dut the device under test
   * @param cond condition, assertion fires (simulation fails) when false
   * @param message optional format string to print when assertion fires
   * @param cycles optional amount of clock cycles for which the assertion is 
@@ -27,7 +28,7 @@ import chisel3._
   * Checks for the argument condition to not be true in the number of cycles passed
   */
 object assertNever {
-    def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
@@ -44,7 +45,7 @@ object assertNever {
   * Checks for the argument condition to be true in the number of cycles passed
   */
 object assertAlways {
-    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, message: String = "Error", cycles: Int = 1) = {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
@@ -70,19 +71,11 @@ object assertAlways {
   * already executed (cycle zero)
   */
 object assertEventually {
-    def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         var i = 0
 
         fork {
-            /*for (i <- 0 until cycles) {
-                if (cond()) {
-                    breakOut
-                } else if (i == cycles - 1){
-                    assert(false, message)
-                }
-                dut.clock.step(1)
-            }*/
             while (!cond()) {
                 if (i == cycles) {
                     assert(false, message)
@@ -103,21 +96,11 @@ object assertEventually {
   * Must be joined
   */
 object assertEventuallyAlways {
-    def apply[T <: Module](dut: T, cond: () => Boolean, message: String, cycles: Int) = {
+    def apply[T <: Module](dut: T, cond: () => Boolean = () => true, cycles: Int = 1, message: String = "Error") = {
 
         var i = 1
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
-
-        /*for (i <- 0 until cycles) {
-            if (cond()) {
-                break
-            } else {
-                // Exception
-                assert(false, message)
-            }
-            k += 1
-        }*/
 
         fork {
             while (!cond()) {
@@ -144,31 +127,25 @@ object assertEventuallyAlways {
   * one bit asserted high. In a datapath circuit the checker
   * can ensure that the enabling conditions for a bus do not
   * result in bus contention.
+  * This can be combined with any of the other assertions
+  * because it returns a boolean value.
   */
 object assertOneHot {
-    def apply(cond: UInt, message: String, cycles: Int) {
-        /*var i = 0
-        while (cond > 0.U) {
-            if ((cond & 1.U) == 1.U) {
-                i += 1
+    def apply(signal: UInt, message: String = "Error") : Boolean = {
+        
+        var in = signal.litValue
+        var i = 0
+        
+        while ((in > 0)) {
+            if ((in & 1) == 1) {
+                i = i + 1
             }
-            cond >> 1
+            in = in >> 1
+            if ((i > 1) == true) {
+                assert(false, message)
+            }
         }
-        assert(i == 1, "One Hot violation")*/
 
-        val a = 0x8000011;
-        var abin = a.toBinaryString
-        System.out.println(abin)
-        var j = 0
-        val k = '1'
-        for(i <- 0 until 24){
-            if(abin.charAt(i) == k){
-            j += 1
-            System.out.println("fuck")
-            }
-            if(j > 1){
-                assert(false)
-            }
-        }
+        return true
     }
 }
