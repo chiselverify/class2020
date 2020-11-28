@@ -301,6 +301,13 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     /** Reset initialized flag */
     isInit = false
 
+    /** Join handlers */
+    if (wAddrT != null) wAddrT.join()
+    if (writeT != null) writeT.join()
+    if (respT  != null) respT.join()
+    if (rAddrT != null) rAddrT.join()
+    if (readT  != null) readT.join()
+
     /** Check for unchecked responses and read data */
     if (hasRespOrReadData) println(s"WARNING: master has ${responses.length} responses and ${readValues.length} Seq's of read data waiting")
   }
