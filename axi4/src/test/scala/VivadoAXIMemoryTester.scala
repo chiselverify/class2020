@@ -12,6 +12,7 @@ import chiseltest._
 import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.internal.VerilatorBackendAnnotation
 import org.scalatest._
+import scala.util.Random
 
 class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Matchers {
   behavior of "AXI4 BRAM"
@@ -136,7 +137,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         // Create write transaction
         master.createWriteTrx(128, Seq.fill(128)(0x7FFFFFFF), len = 0x7F, size = 2, burst = BurstEncodings.Incr)
 
-        // Wait for the write to complete (spin on response)
+        // Wait for the write to complete
         var resp = master.checkResponse()
         while (resp == None) {
           resp = master.checkResponse()
@@ -148,7 +149,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         // Create read transaction
         master.createReadTrx(128, len = 0x7F, size = 2, burst = BurstEncodings.Incr)
 
-        // Wait for read to complete (spin on read data)
+        // Wait for read to complete
         var data = master.checkReadData()
         while (data == None) {
           data = master.checkReadData()
@@ -156,6 +157,106 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         val d = data match { case Some(v) => v; case _ => Seq() }
         assert(d.foldLeft(true) { (acc, elem) => acc && (elem == 0x7FFFFFFF) }, "read data value is incorrect")
+
+        master.close()
+    }
+  }
+
+  it should "write and read with WRAP transactions" in {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
+      dut =>
+        val master = new AXI4FunctionalMaster(dut)
+        master.initialize()
+
+        // addr = 96
+        // dtsize = 4 * 16 = 64
+        // Lower Wrap Boundary = INT(addr / dtsize) * dtsize = 64
+        // Upper Wrap Boundary = Lower Wrap Boundary + dtsize = 128
+        val inputData  = (0 to 15).toSeq.map(x => BigInt(x))
+        val outputData = inputData.takeRight(8) ++ inputData.take(8)
+
+        // Create write transaction
+        master.createWriteTrx(96, inputData, len = 0xF, size = 2, burst = BurstEncodings.Wrap)
+
+        // Wait for the write to complete
+        var resp = master.checkResponse()
+        while (resp == None) {
+          resp = master.checkResponse()
+          dut.clock.step()
+        }
+        val r = resp match { case Some(r) => r.resp.litValue; case _ => ResponseEncodings.Slverr.litValue }
+        assert(r == 0, "expected write to pass")
+
+        // Create read transaction
+        master.createReadTrx(64, len = 0xF, size = 2, burst = BurstEncodings.Incr)
+
+        // Wait for read to complete
+        var data = master.checkReadData()
+        while (data == None) {
+          data = master.checkReadData()
+          dut.clock.step()
+        }
+        val d = data match { case Some(v) => v; case _ => Seq() }
+        assert(d.zip(outputData).map { x => x._1 == x._2 }.foldLeft(true) { (acc, elem) => acc && elem }, "read data value is incorrect")
+
+        master.close()
+    }
+  }
+
+  it should "handle multiple in-flight transactions" in {
+    test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
+      dut => 
+        val master = new AXI4FunctionalMaster(dut)
+        master.initialize()
+
+        // Create two write transactions
+        val rng = new Random(42)
+        val data1 = Seq.fill(32) { BigInt(32, rng) }
+        val data2 = Seq.fill(16) { BigInt(32, rng) }
+        master.createWriteTrx(512, data1, len = 0x1F, size = 2, burst = BurstEncodings.Incr)
+        master.createWriteTrx(192, data2, len = 0xF, size = 1)
+
+        // Wait for the first write to complete
+        var resp = master.checkResponse()
+        while (resp == None) {
+          resp = master.checkResponse()
+          dut.clock.step()
+        }
+        var r = resp match { case Some(r) => r.resp.litValue; case _ => ResponseEncodings.Slverr.litValue }
+        assert(r == 0, "expected write to pass")
+
+        // Create first read transaction
+        master.createReadTrx(512, len = 0x1F, size = 2, burst = BurstEncodings.Incr)
+        
+        // Wait for the first read to complete
+        var data = master.checkReadData()
+        while (data == None) {
+          data = master.checkReadData()
+          dut.clock.step()
+        }
+        var d = data match { case Some(v) => v; case _ => Seq() }
+        assert(d.zip(data1).foldLeft(true) { (acc, elem) => acc && (elem._1 == elem._2) }, "read data value is incorrect")
+
+        // Wait for the second write to complete
+        resp = master.checkResponse()
+        while (resp == None) {
+          resp = master.checkResponse()
+          dut.clock.step()
+        }
+        r = resp match { case Some(r) => r.resp.litValue; case _ => ResponseEncodings.Slverr.litValue }
+        assert(r == 0, "expected write to pass")
+
+        // Create second read transaction
+        master.createReadTrx(192, size = 1)
+
+        // Wait for the second read to complete
+        data = master.checkReadData()
+        while (data == None) {
+          data = master.checkReadData()
+          dut.clock.step()
+        }
+        d = data match { case Some(v) => v; case _ => Seq() }
+        assert(d(0) == (data2.last & ((1 << 16) - 1)), "read data value is incorrect")
 
         master.close()
     }

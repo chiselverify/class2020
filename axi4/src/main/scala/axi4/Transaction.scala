@@ -19,11 +19,30 @@ trait Transaction {
  *
  * @param addr start write address
  * @param data list of data to write
- * @param dataW DUT's data width
+ * @param dataW slave's data bus width
+ * @param id optional id, defaults to ID 0
+ * @param len optional burst length, defaults to 0 (i.e., 1 beat)
  * @param size optional beat size, defaults to 1 byte
- * @param burst optional burst type, defaults to INCR
+ * @param burst optional burst type, defaults to FIXED
+ * @param lock optional lock type, defaults to normal access
+ * @param cache optional memory attribute signal, defaults to device non-bufferable
+ * @param prot optional protection type, defaults to non-secure unprivileged data access
+ * @param qos optional QoS, defaults to 0
+ * @param region optional region, defaults to 0
  */
-class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 0, burst: UInt = BurstEncodings.Incr) extends Transaction {
+class WriteTransaction(
+  val addr: BigInt, 
+  val data: Seq[BigInt], 
+  dataW: Int,
+  val id: BigInt = 0, 
+  val len: Int = 0, 
+  val size: Int = 0, 
+  val burst: UInt = BurstEncodings.Fixed, 
+  val lock: Bool = LockEncodings.NormalAccess, 
+  val cache: UInt = MemoryEncodings.DeviceNonbuf, 
+  val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
+  val qos: UInt = 0.U, 
+  val region: UInt = 0.U) extends Transaction {
   private[this] val numBytes = 1 << size
   private[this] val dtsize = numBytes * data.length
   private[this] val lowerBoundary = (addr / dtsize) * dtsize
@@ -32,6 +51,17 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
   private[this] var aligned = addr == alignedAddress
   private[this] var address = addr
   private[this] var count = 0
+
+  private[this] var _addrSent = false
+  private[this] var _dataSent = false
+
+  /** Getter and setter for [[addrSent]] */
+  def addrSent = _addrSent
+  def addrSent_=(newValue: Boolean): Unit = _addrSent = newValue
+
+  /** Getter and setter for [[dataSent]] */
+  def dataSent = _dataSent
+  def dataSent_=(newValue: Boolean): Unit = _dataSent = newValue
 
   /** Get next (data, strb, last) tuple
    * 
@@ -71,10 +101,35 @@ class WriteTransaction(addr: BigInt, data: Seq[BigInt], dataW: Int, size: Int = 
 
 /** Read transaction 
  * 
- * @param len burst length
+ * @param addr start read address
+ * @param id optional id, defaults to ID 0
+ * @param len optional burst length, defaults to 0 (i.e., 1 beat)
+ * @param size optional beat size, defaults to 1 byte
+ * @param burst optional burst type, defaults to FIXED
+ * @param lock optional lock type, defaults to normal access
+ * @param cache optional memory attribute signal, defaults to device non-bufferable
+ * @param prot optional protection type, defaults to non-secure unprivileged data access
+ * @param qos optional QoS, defaults to 0
+ * @param region optional region, defaults to 0
  */
-class ReadTransaction(len: Int) extends Transaction {
+class ReadTransaction(
+  val addr: BigInt, 
+  val id: BigInt = 0, 
+  val len: Int = 0, 
+  val size: Int = 0, 
+  val burst: UInt = BurstEncodings.Fixed, 
+  val lock: Bool = LockEncodings.NormalAccess, 
+  val cache: UInt = MemoryEncodings.DeviceNonbuf, 
+  val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
+  val qos: UInt = 0.U, 
+  val region: UInt = 0.U) extends Transaction {
   var data = Seq[BigInt]()
+
+  private[this] var _addrSent = false
+
+  /** Getter and setter for [[addrSent]] */
+  def addrSent = _addrSent
+  def addrSent_=(newValue: Boolean): Unit = _addrSent = newValue
 
   /** Add element to data sequence
    *

@@ -1,9 +1,6 @@
 # Verification of AMBA AXI Interfaced Components
 This project focuses on implementation of AXI4 master interface definitions and a small framework providing support for all of the defined transactions from the AXI master's point of view in the protocol.
 
-## TODO
-- Evaluate functional master
-
 ### Extras
 - Functional AXI slave (like above)
   - Concurrent interfaces

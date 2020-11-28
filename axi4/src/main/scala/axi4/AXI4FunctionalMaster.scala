@@ -11,6 +11,7 @@ package axi4
 import chisel3._
 import chisel3.util._
 import chiseltest._
+import chiseltest.internal.TesterThreadList
 import scala.util.Random
 
 /** An AXI4 functional master
@@ -37,53 +38,70 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
 
   /** Threads and transaction state */
   private[this] var isInit  = false
-  private[this] var inFlightWrites = Seq[WriteTransaction]()
-  private[this] var inFlightReads = Seq[ReadTransaction]()
-  private[this] var readValues = Seq[Seq[BigInt]]()
-  private[this] var responses = Seq[Response]()
-  private[this] var respT = fork { }
-  private[this] var lastWAddrT = fork { }
-  private[this] var lastWT = fork { }
-  private[this] var lastRAddrT = fork { }
-  private[this] var lastRT = fork { }
+  // For writes
+  private[this] var awaitingWAddr = Seq[WriteTransaction]()
+  private[this] var awaitingWrite = Seq[WriteTransaction]()
+  private[this] var awaitingResp  = Seq[WriteTransaction]()
+  private[this] var responses      = Seq[Response]()
+  private[this] var wAddrT: TesterThreadList = _
+  private[this] var writeT: TesterThreadList = _
+  private[this] var respT: TesterThreadList  = _
+  // For reads
+  private[this] var awaitingRAddr = Seq[ReadTransaction]()
+  private[this] var awaitingRead  = Seq[ReadTransaction]()
+  private[this] var readValues    = Seq[Seq[BigInt]]()
+  private[this] var rAddrT: TesterThreadList = _
+  private[this] var readT: TesterThreadList  = _
+  // For random data
   private[this] val rng = new Random(42)
 
   /** Check for in-flight operations
    *
    * @return Boolean
    */
-  def hasInflightOps() = inFlightReads.length > 0 || inFlightWrites.length > 0
+  def hasInflightOps() = !awaitingWAddr.isEmpty || !awaitingWrite.isEmpty || !awaitingResp.isEmpty || !awaitingRAddr.isEmpty || !awaitingRead.isEmpty
+
+  /** Check for responses or read data
+   * 
+   * @return Boolean
+  */
+  def hasRespOrReadData() = !responses.isEmpty || !readValues.isEmpty
 
   /** Handle the write address channel
    * 
    * @note never call this method explicitly
    */
-  private[this] def writeAddrHandler(addr: BigInt, id: BigInt, len: Int, size: Int, burst: UInt, lock: Bool, cache: UInt, prot: UInt, qos: UInt, region: UInt): Unit = {
-    println(s"New write address handler for addr = $addr")
+  private[this] def writeAddrHandler(): Unit = {
+    println("New write address handler")
 
-    /** Write address to slave */
-    aw.valid.poke(true.B)
-    aw.bits.id.poke(id.U)
-    aw.bits.addr.poke(addr.U)
-    aw.bits.len.poke(len.U)
-    aw.bits.size.poke(size.U)
-    aw.bits.burst.poke(burst)
-    aw.bits.lock.poke(lock)
-    aw.bits.cache.poke(cache)
-    aw.bits.prot.poke(prot)
-    aw.bits.qos.poke(qos)
-    aw.bits.region.poke(region)
-    while (!aw.ready.peek.litToBoolean) {
+    /** Run this thread as long as the master is initialized or more transactions are waiting */
+    while (!awaitingWAddr.isEmpty) {
+      /** Get the current transaction */
+      val head = awaitingWAddr.head
+
+      /** Write address to slave */
+      aw.valid.poke(true.B)
+      aw.bits.id.poke(head.id.U)
+      aw.bits.addr.poke(head.addr.U)
+      aw.bits.len.poke(head.len.U)
+      aw.bits.size.poke(head.size.U)
+      aw.bits.burst.poke(head.burst)
+      aw.bits.lock.poke(head.lock)
+      aw.bits.cache.poke(head.cache)
+      aw.bits.prot.poke(head.prot)
+      aw.bits.qos.poke(head.qos)
+      aw.bits.region.poke(head.region)
+      while (!aw.ready.peek.litToBoolean) {
+        clk.step()
+      }
       clk.step()
-    }
-    clk.step()
-    aw.valid.poke(false.B)
+      aw.valid.poke(false.B) 
 
-    /** Fork new write handler */
-    lastWT = fork {
-      lastWT.join()
-      writeHandler()
+      /** Update transaction and queue */
+      awaitingWAddr = awaitingWAddr.tail
+      head.addrSent = true
     }
+    println("Closing write address handler")
   }
 
   /** Handle the data write channel
@@ -93,27 +111,34 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] def writeHandler(): Unit = {
     println("New write handler")
 
-    /** Write data to slave */
-    dw.valid.poke(true.B)
-    while (!inFlightWrites.head.complete) {
-      val (data, strb, last) = inFlightWrites.head.next
-      println("Write " + data.litValue + " with strobe " + strb.toString + " and last " + last.litToBoolean)
-      dw.bits.data.poke(data)
-      dw.bits.strb.poke(strb)
-      dw.bits.last.poke(last)
-      while (!dw.ready.peek.litToBoolean) {
+    /** Run this thread as long as the master is initialized or more transactions are waiting */
+    while (!awaitingWrite.isEmpty) {
+      /** Get the current transaction */
+      val head = awaitingWrite.head
+      while (!head.addrSent) {
         clk.step()
       }
-      clk.step()
-    }
-    dw.valid.poke(false.B)
-    inFlightWrites = inFlightWrites.tail
 
-    /** Fork new response handler thread */
-    respT = fork {
-      respT.join()
-      respHandler()
+      /** Write data to slave */
+      dw.valid.poke(true.B)
+      while (!head.complete) {
+        val (data, strb, last) = head.next
+        println("Write " + data.litValue + " with strobe " + strb.toString + " and last " + last.litToBoolean)
+        dw.bits.data.poke(data)
+        dw.bits.strb.poke(strb)
+        dw.bits.last.poke(last)
+        while (!dw.ready.peek.litToBoolean) {
+          clk.step()
+        }
+        clk.step()
+      }
+      dw.valid.poke(false.B)
+
+      /** Update transaction and queue */
+      awaitingWrite = awaitingWrite.tail
+      head.dataSent = true
     }
+    println("Closing write handler")
   }
 
   /** Watch the response channel
@@ -123,45 +148,63 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] def respHandler() = {
     println("New response handler")
 
-    /** Indicate that interface is ready and wait for response */
-    wr.ready.poke(true.B)
-    while (!wr.valid.peek.litToBoolean) {
-      clk.step()
+    /** Run this thread as long as the master is initialized or more transactions are waiting */
+    while (!awaitingResp.isEmpty) {
+      /** Get the current transaction */
+      val head = awaitingResp.head
+      while (!head.dataSent) {
+        clk.step()
+      }
+
+      /** Indicate that interface is ready and wait for response */
+      wr.ready.poke(true.B)
+      while (!wr.valid.peek.litToBoolean) {
+        clk.step()
+      }
+      responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
+      wr.ready.poke(false.B)
+
+      /** Update queue */
+      awaitingResp = awaitingResp.tail
     }
-    responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
-    wr.ready.poke(false.B)
+    println("Closing response handler")
   }
 
   /** Handle the read address channel
    * 
    * @note never call this method explicitly
    */
-  private[this] def readAddrHandler(addr: BigInt, id: BigInt, len: Int, size: Int, burst: UInt, lock: Bool, cache: UInt, prot: UInt, qos: UInt, region: UInt): Unit = {
-    println(s"New read address handler for addr = $addr")
+  private[this] def readAddrHandler(): Unit = {
+    println("New read address handler")
 
-    /** Write address to slave */
-    ar.valid.poke(true.B)
-    ar.bits.id.poke(id.U)
-    ar.bits.addr.poke(addr.U)
-    ar.bits.len.poke(len.U)
-    ar.bits.size.poke(size.U)
-    ar.bits.burst.poke(burst)
-    ar.bits.lock.poke(lock)
-    ar.bits.cache.poke(cache)
-    ar.bits.prot.poke(prot)
-    ar.bits.qos.poke(qos)
-    ar.bits.region.poke(region)
-    while (!ar.ready.peek.litToBoolean) {
+    /** Run this thread as long as the master is initialized or more transactions are waiting */
+    while (!awaitingRAddr.isEmpty) {
+      /** Get the current transaction */
+      val head = awaitingRAddr.head 
+
+      /** Write address to slave */
+      ar.valid.poke(true.B)
+      ar.bits.id.poke(head.id.U)
+      ar.bits.addr.poke(head.addr.U)
+      ar.bits.len.poke(head.len.U)
+      ar.bits.size.poke(head.size.U)
+      ar.bits.burst.poke(head.burst)
+      ar.bits.lock.poke(head.lock)
+      ar.bits.cache.poke(head.cache)
+      ar.bits.prot.poke(head.prot)
+      ar.bits.qos.poke(head.qos)
+      ar.bits.region.poke(head.region)
+      while (!ar.ready.peek.litToBoolean) {
+        clk.step()
+      }
       clk.step()
-    }
-    clk.step()
-    ar.valid.poke(false.B)
+      ar.valid.poke(false.B)
 
-    /** Fork new read handler */
-    lastRT = fork {
-      lastRT.join()
-      readHandler()
+      /** Update transaction and queue */
+      awaitingRAddr = awaitingRAddr.tail
+      head.addrSent = true
     }
+    println("Closing read address handler")
   }
 
   /** Handle the data read channel
@@ -171,19 +214,31 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] def readHandler(): Unit = {
     println("New read handler")
 
-    /** Read data from slave */
-    dr.ready.poke(true.B)
-    while (!inFlightReads.head.complete) {
-      if (dr.valid.peek.litToBoolean) {
-        val (data, resp, last) = (dr.bits.data.peek, dr.bits.resp.peek, dr.bits.last.peek)
-        println(s"Read " + data.litValue + " with response " + resp.litValue + " and last " + last.litToBoolean)
-        inFlightReads.head.add(data.litValue)
+    /** Run this thread as long as the master is initialized or more transactions are waiting */
+    while (!awaitingRead.isEmpty) {
+      /** Get the current transaction */
+      val head = awaitingRead.head
+      while (!head.addrSent) {
+        clk.step()
       }
-      clk.step()
+
+      /** Read data from slave */
+      dr.ready.poke(true.B)
+      while (!head.complete) {
+        if (dr.valid.peek.litToBoolean) {
+          val (data, resp, last) = (dr.bits.data.peek, dr.bits.resp.peek, dr.bits.last.peek)
+          println(s"Read " + data.litValue + " with response " + resp.litValue + " and last " + last.litToBoolean)
+          head.add(data.litValue)
+        }
+        clk.step()
+      }
+      readValues = readValues :+ head.data
+      dr.ready.poke(false.B)
+
+      /** Update queue */
+      awaitingRead = awaitingRead.tail
     }
-    readValues = readValues :+ inFlightReads.head.data
-    inFlightReads = inFlightReads.tail
-    dr.ready.poke(false.B)
+    println("Closing read handler")
   }
 
   /** Initialize the interface (reset) 
@@ -243,15 +298,11 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note MUST be called after a test to ensure no Chiseltest thread errors
    */
   def close() = {
-    /** Join all threads */
-    respT.join()
-    lastWAddrT.join()
-    lastWT.join()
-    lastRAddrT.join()
-    lastRT.join()
-
     /** Reset initialized flag */
     isInit = false
+
+    /** Check for unchecked responses and read data */
+    if (hasRespOrReadData) println(s"WARNING: master has ${responses.length} responses and ${readValues.length} Seq's of read data waiting")
   }
 
   /** Start a write transaction to the given address
@@ -274,17 +325,17 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note [[burst]], [[lock]], [[cache]], and [[prot]] should be a set of those defined in Defs.scala
    */
   def createWriteTrx(
-      addr: BigInt, 
-      data: Seq[BigInt] = Seq[BigInt](), 
-      id: BigInt = 0, 
-      len: Int = 0, 
-      size: Int = 0, 
-      burst: UInt = BurstEncodings.Fixed, 
-      lock: Bool = LockEncodings.NormalAccess, 
-      cache: UInt = MemoryEncodings.DeviceNonbuf, 
-      prot: UInt = ProtectionEncodings.DataNsecUpriv, 
-      qos: UInt = 0.U, 
-      region: UInt = 0.U) = {
+    addr: BigInt, 
+    data: Seq[BigInt] = Seq[BigInt](), 
+    id: BigInt = 0, 
+    len: Int = 0, 
+    size: Int = 0, 
+    burst: UInt = BurstEncodings.Fixed, 
+    lock: Bool = LockEncodings.NormalAccess, 
+    cache: UInt = MemoryEncodings.DeviceNonbuf, 
+    prot: UInt = ProtectionEncodings.DataNsecUpriv, 
+    qos: UInt = 0.U, 
+    region: UInt = 0.U) = {
     require(isInit, "interface must be initialized before starting write transactions")
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
@@ -321,13 +372,15 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
       Seq.fill(burstLen) { BigInt(numBytes, rng) }
 
     /** Create and queue new write transaction */
-    inFlightWrites = inFlightWrites :+ (new WriteTransaction(addr, data, dataW, size, burst))
+    val trx = new WriteTransaction(addr, data, dataW, id, len, size, burst, lock, cache, prot, qos, region)
+    awaitingWAddr = awaitingWAddr :+ trx
+    awaitingWrite = awaitingWrite :+ trx
+    awaitingResp  = awaitingResp  :+ trx
 
-    /** Write address to slave */
-    lastWAddrT = fork {
-      lastWAddrT.join()
-      writeAddrHandler(addr, id, len, size, burst, lock, cache, prot, qos, region)
-    }
+    /** If this was the first transaction, fork new handlers */
+    if (awaitingWAddr.length == 1) wAddrT = fork { writeAddrHandler() }
+    if (awaitingWrite.length == 1) writeT = fork { writeHandler() }
+    if (awaitingResp.length  == 1) respT  = fork { respHandler() }
   }
 
   /** Start a write transaction to the given address
@@ -348,16 +401,16 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note [[burst]], [[lock]], [[cache]], and [[prot]] should be a set of those defined in Defs.scala
    */
   def createReadTrx(
-      addr: BigInt, 
-      id: BigInt = 0, 
-      len: Int = 0, 
-      size: Int = 0, 
-      burst: UInt = BurstEncodings.Fixed, 
-      lock: Bool = LockEncodings.NormalAccess, 
-      cache: UInt = MemoryEncodings.DeviceNonbuf, 
-      prot: UInt = ProtectionEncodings.DataNsecUpriv, 
-      qos: UInt = 0.U, 
-      region: UInt = 0.U) = {
+    addr: BigInt, 
+    id: BigInt = 0, 
+    len: Int = 0, 
+    size: Int = 0, 
+    burst: UInt = BurstEncodings.Fixed, 
+    lock: Bool = LockEncodings.NormalAccess, 
+    cache: UInt = MemoryEncodings.DeviceNonbuf, 
+    prot: UInt = ProtectionEncodings.DataNsecUpriv, 
+    qos: UInt = 0.U, 
+    region: UInt = 0.U) = {
     require(isInit, "interface must be initialized before starting write transactions")
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
@@ -387,13 +440,13 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     }
 
     /** Create and queue new read transaction */
-    inFlightReads = inFlightReads :+ (new ReadTransaction(len))
+    val trx = new ReadTransaction(addr, id, len, size, burst, lock, cache, prot, qos, region)
+    awaitingRAddr = awaitingRAddr :+ trx
+    awaitingRead  = awaitingRead  :+ trx
 
-    /** Write address to slave */
-    lastRAddrT = fork {
-      lastRAddrT.join()
-      readAddrHandler(addr, id, len, size, burst, lock, cache, prot, qos, region)
-    }
+    /** If this was the first transaction, fork new handlers */
+    if (awaitingRAddr.length == 1) rAddrT = fork { readAddrHandler() }
+    if (awaitingRead.length  == 1) readT  = fork { readHandler() }
   }
 
   /** Check for write response 
