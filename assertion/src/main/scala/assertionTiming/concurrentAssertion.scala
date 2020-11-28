@@ -151,13 +151,9 @@ object assertEventuallyAlways {
                 }
                 i += 1
                 dut.clock.step(1)
-                //Debug
-                k += 1
-                System.out.println("LOOOOOOOOOOOOOOK " + k)
             }
 
             for (j <- 0 until cycles - i) {
-                System.out.println("lalalalaaaaaaaaaaaaaaa")
                 assert(cond(), message)
                 dut.clock.step(1)
             }

@@ -6,20 +6,24 @@ import concurrent._
 // Compiles, but simple test does not yet work
 class mainOneHot extends Module {
     val io = IO(new Bundle {
-        val s = Input(UInt(2.W))
-        val c = Output(UInt(4.W))
+        val data = Input(UInt(4.W))
+        val enc = Input(Bool())
+        val dec = Input(Bool())
+        val dout = Output(UInt(4.W))
     })
 
-    
+    val decode :: encode :: Nil = Enum(2)
+    val stateReg = RegInit(decode)
 
-    val reg = RegInit(0.U(4.W))
-
-    switch (io.s) {
-        is ("b00".U) { reg := "b0001".U}
-        is ("b01".U) { reg := "b0010".U}
-        is ("b10".U) { reg := "b0100".U}
-        is ("b11".U) { reg := "b1000".U}
+    when(stateReg === decode) {
+      when(io.enc) {
+        io.dec := false.B
+        io.dout := 1.U << io.data
+      }
+    }.elsewhen(stateReg === encode) {
+      when(io.dec) {
+        io.enc := false.B
+        io.dout := (1.U << 4) >> io.data
+      }
     }
-
-    io.c := reg
 }

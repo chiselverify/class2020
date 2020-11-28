@@ -1,8 +1,9 @@
-import org.scalatest._
+/*import org.scalatest._
 import assertionTiming._
 import chisel3._
 import chiseltest._
 
+// Obsolete test class, needs revising
 class oneHotTest extends FlatSpec with ChiselScalatestTester with Matchers {
   behavior of "assertOneHot"
 
@@ -30,5 +31,5 @@ class oneHotTest extends FlatSpec with ChiselScalatestTester with Matchers {
       }
     }
   }
-}
+}*/
 
