@@ -1,4 +1,4 @@
-/*import org.scalatest._
+import org.scalatest._
 import assertionTiming._
 import chisel3._
 import chiseltest._
@@ -7,29 +7,39 @@ import chiseltest._
 class oneHotTest extends FlatSpec with ChiselScalatestTester with Matchers {
   behavior of "assertOneHot"
 
-  it should "test count of bitset in binary" in {
+  it should "test decoding" in {
     test(new mainOneHot()) {
       dut => {
-        dut.io.s.poke("b10".U)
+        dut.io.dec.poke(true.B)
+        dut.io.data.poke("b01".U)
         dut.clock.step(1)
-        assertOneHot("b1000".U, "Error")
-        dut.io.c.expect("b0100".U)
+        assertOneHot("b0010".U)
+      }
+    }
+  }
+it should "test decoding and FAIL" in {
+    test(new mainOneHot()) {
+      dut => {
+        dut.io.dec.poke(true.B)
+        dut.io.data.poke("b01".U)
+        dut.clock.step(1)
+        assertOneHot("b0110".U, "Decoding yields " + dut.io.dout.peek)
       }
     }
   }
 
-  it should "test count of bitset in binary concurrently" in {
+
+  it should "test encoding" in {
     test(new mainOneHot()) {
       dut => {
-        dut.io.s.poke("b10".U)
+        dut.io.enc.poke(true.B)
         dut.clock.step(1)
-        assertAlways(dut, () => assertOneHot(dut.io.c.peek), 10)
-        dut.clock.step(2)
-        dut.io.s.poke("b11".U)
-        dut.clock.step(2)
-        dut.io.s.poke("b00".U)
+        dut.io.data.poke("b0100".U)
+        dut.clock.step(1)
+        dut.io.dout.expect("b10".U)
+        //assertOneHot("b10".U)
       }
     }
   }
-}*/
+}
 

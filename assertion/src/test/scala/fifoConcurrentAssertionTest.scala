@@ -124,7 +124,6 @@ it should "writes and reads data concurrently" in {
         }
         assertEventuallyAlwaysEvent(dut, () => deq.notReady == true.B, enq.busy == true.B)
         receiver()
-
       }
     }
   }
