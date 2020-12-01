@@ -169,7 +169,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         val d = assertEventually(dut, () => dut.io.d.peek.litValue == 4, 3, "Error2")
         dut.clock.step(2)
         dut.io.b.poke(true.B)
-        dut.clock.step(4)
+        dut.clock.step(3)
         dut.io.a.poke(true.B)
         c.join
         d.join
@@ -211,7 +211,7 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         val d = assertEventually(dut, () => dut.io.d.peek.litValue == 4, 3, "Error2")
         dut.clock.step(2)
         dut.io.b.poke(true.B)
-        dut.clock.step(4)
+        dut.clock.step(3)
         dut.io.a.poke(true.B)
         dut.clock.step(1)
         dut.io.a.poke(false.B)
@@ -228,7 +228,6 @@ class concurrentAssertionTest extends FlatSpec with ChiselScalatestTester with M
         
         dut.io.s.poke(false.B)
         dut.clock.step(1)
-        //val t = assertEventuallyAlways(dut, () => dut.io.c.peek.litValue == 4, 20, "Error")
 
         dut.clock.step(1)
         dut.io.s.poke(true.B)
