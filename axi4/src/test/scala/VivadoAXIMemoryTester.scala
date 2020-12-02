@@ -21,8 +21,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
-        master.close()
     }
   }
 
@@ -30,7 +28,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
 
         def printCheck() = {
           println("AWREADY = " + dut.io.aw.ready.peek.litToBoolean)
@@ -89,8 +86,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         printCheck()
         dut.io.dr.bits.data.expect(42.U)
-
-        master.close()
     }
   }
 
@@ -98,7 +93,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
 
         // Create write transaction
         master.createWriteTrx(0, Seq(42), size = 2)
@@ -123,8 +117,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         val d = data match { case Some(v) => v; case _ => Seq() }
         assert(d.length == 1 && d(0) == 42, "read data value is incorrect")
-
-        master.close()
     }
   }
 
@@ -132,7 +124,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
 
         // Create write transaction
         master.createWriteTrx(128, Seq.fill(128)(0x7FFFFFFF), len = 0x7F, size = 2, burst = BurstEncodings.Incr)
@@ -157,8 +148,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         val d = data match { case Some(v) => v; case _ => Seq() }
         assert(d.foldLeft(true) { (acc, elem) => acc && (elem == 0x7FFFFFFF) }, "read data value is incorrect")
-
-        master.close()
     }
   }
 
@@ -166,7 +155,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
 
         // addr = 96
         // dtsize = 4 * 16 = 64
@@ -198,8 +186,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         val d = data match { case Some(v) => v; case _ => Seq() }
         assert(d.zip(outputData).map { x => x._1 == x._2 }.foldLeft(true) { (acc, elem) => acc && elem }, "read data value is incorrect")
-
-        master.close()
     }
   }
 
@@ -207,7 +193,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut => 
         val master = new AXI4FunctionalMaster(dut)
-        master.initialize()
 
         // Create two write transactions
         val rng = new Random(42)
@@ -257,8 +242,6 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         }
         d = data match { case Some(v) => v; case _ => Seq() }
         assert(d(0) == (data2.last & ((1 << 16) - 1)), "read data value is incorrect")
-
-        master.close()
     }
   }
 }

@@ -18,8 +18,6 @@ import scala.util.Random
  * 
  * @param dut a slave DUT
  * 
- * @note [[initialize]] method must be called before any transactions are started
- * @note [[close]] method must be called after a test to ensure no Chiseltest thread errors
  */
 class AXI4FunctionalMaster[T <: Slave](dut: T) {
   /** DUT information */
@@ -37,7 +35,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] val clk     = dut.clock
 
   /** Threads and transaction state */
-  private[this] var isInit  = false
   // For writes
   private[this] var awaitingWAddr = Seq[WriteTransaction]()
   private[this] var awaitingWrite = Seq[WriteTransaction]()
@@ -54,6 +51,50 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
   private[this] var readT: TesterThreadList  = _
   // For random data
   private[this] val rng = new Random(42)
+
+  /** Default values on all signals */
+  // Address write
+  aw.bits.id.poke(0.U)
+  aw.bits.addr.poke(0.U)
+  aw.bits.len.poke(0.U)
+  aw.bits.size.poke(0.U)
+  aw.bits.burst.poke(BurstEncodings.Fixed)
+  aw.bits.lock.poke(LockEncodings.NormalAccess)
+  aw.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
+  aw.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
+  aw.bits.qos.poke(0.U)
+  aw.bits.region.poke(0.U)
+  aw.valid.poke(false.B)
+  
+  // Data write
+  dw.bits.data.poke(0.U)
+  dw.bits.strb.poke(0.U)
+  dw.bits.last.poke(false.B)
+  dw.valid.poke(false.B)
+
+  // Write response
+  wr.ready.poke(false.B)
+
+  // Address read
+  ar.bits.id.poke(0.U)
+  ar.bits.addr.poke(0.U)
+  ar.bits.len.poke(0.U)
+  ar.bits.size.poke(0.U)
+  ar.bits.burst.poke(BurstEncodings.Fixed)
+  ar.bits.lock.poke(LockEncodings.NormalAccess)
+  ar.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
+  ar.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
+  ar.bits.qos.poke(0.U)
+  ar.bits.region.poke(0.U)
+  ar.valid.poke(false.B)
+
+  // Data read
+  dr.ready.poke(false.B)
+
+  // Reset slave device controller
+  resetn.poke(false.B)
+  clk.step()
+  resetn.poke(true.B)
 
   /** Check for in-flight operations
    *
@@ -241,66 +282,11 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     println("Closing read handler")
   }
 
-  /** Initialize the interface (reset) 
+  /** Destructor
    * 
-   * @note MUST be called first to ensure correct operation
+   * @note joins all non-null thread pointers and checks for responses and read data waiting in queues
    */
-  def initialize() = {
-    /** Address write */
-    aw.bits.id.poke(0.U)
-    aw.bits.addr.poke(0.U)
-    aw.bits.len.poke(0.U)
-    aw.bits.size.poke(0.U)
-    aw.bits.burst.poke(BurstEncodings.Fixed)
-    aw.bits.lock.poke(LockEncodings.NormalAccess)
-    aw.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
-    aw.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
-    aw.bits.qos.poke(0.U)
-    aw.bits.region.poke(0.U)
-    aw.valid.poke(false.B)
-    
-    /** Data write */
-    dw.bits.data.poke(0.U)
-    dw.bits.strb.poke(0.U)
-    dw.bits.last.poke(false.B)
-    dw.valid.poke(false.B)
-
-    /** Write response */
-    wr.ready.poke(false.B)
-
-    /** Address read */
-    ar.bits.id.poke(0.U)
-    ar.bits.addr.poke(0.U)
-    ar.bits.len.poke(0.U)
-    ar.bits.size.poke(0.U)
-    ar.bits.burst.poke(BurstEncodings.Fixed)
-    ar.bits.lock.poke(LockEncodings.NormalAccess)
-    ar.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
-    ar.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
-    ar.bits.qos.poke(0.U)
-    ar.bits.region.poke(0.U)
-    ar.valid.poke(false.B)
-
-    /** Data read */
-    dr.ready.poke(false.B)
-
-    /** Reset slave device controller */
-    resetn.poke(false.B)
-    clk.step()
-    resetn.poke(true.B)
-
-    /** Set initialized flag */
-    isInit = true
-  }
-
-  /** Close the interface (shutdown)
-   * 
-   * @note MUST be called after a test to ensure no Chiseltest thread errors
-   */
-  def close() = {
-    /** Reset initialized flag */
-    isInit = false
-
+  override def finalize() = {
     /** Join handlers */
     if (wAddrT != null) wAddrT.join()
     if (writeT != null) writeT.join()
@@ -309,7 +295,7 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     if (readT  != null) readT.join()
 
     /** Check for unchecked responses and read data */
-    if (hasRespOrReadData) println(s"WARNING: master has ${responses.length} responses and ${readValues.length} Seq's of read data waiting")
+    if (hasRespOrReadData) println(s"WARNING: master had ${responses.length} responses and ${readValues.length} Seq's of read data waiting")
   }
 
   /** Start a write transaction to the given address
@@ -343,7 +329,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     prot: UInt = ProtectionEncodings.DataNsecUpriv, 
     qos: UInt = 0.U, 
     region: UInt = 0.U) = {
-    require(isInit, "interface must be initialized before starting write transactions")
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
 
@@ -418,7 +403,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
     prot: UInt = ProtectionEncodings.DataNsecUpriv, 
     qos: UInt = 0.U, 
     region: UInt = 0.U) = {
-    require(isInit, "interface must be initialized before starting write transactions")
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
 
@@ -462,7 +446,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note reading is destructive; i.e., the response being checked is removed from the queue
   */
   def checkResponse() = {
-    require(isInit, "interface must be initialized before starting write transactions")
     responses match {
       case r :: tail => 
         responses = tail
@@ -477,7 +460,6 @@ class AXI4FunctionalMaster[T <: Slave](dut: T) {
    * @note reading is destructive; i.e., the data being returned is removed from the queue
    */
   def checkReadData() = {
-    require(isInit, "interface must be initialized before starting write transactions")
     readValues match {
       case v :: tail =>
         readValues = tail
