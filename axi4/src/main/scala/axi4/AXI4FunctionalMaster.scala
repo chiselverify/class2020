@@ -19,7 +19,7 @@ import scala.util.Random
  * @param dut a slave DUT
  * 
  */
-class AXI4FunctionalMaster[T <: Slave](dut: T) {
+class FunctionalMaster[T <: Slave](dut: T) {
   /** DUT information */
   private[this] val idW     = dut.idW
   private[this] val addrW   = dut.addrW

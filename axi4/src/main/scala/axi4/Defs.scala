@@ -62,21 +62,18 @@ object ResponseEncodings {
   val Decerr            = "b11".U
 }
 
-/** User signal trait */
-trait UserSignal {
-  val user = Output(UInt())
-}
-
 /** AXI4 write address base interface
  * 
  * Defines the mandatory signals in the interface
  * 
- * @param idW the width of the AWID signal in bits
  * @param addrW the width of the AWADDR signal in bits
+ * @param idW the width of the AWID signal in bits, defaults to 0
+ * @param userW the width of the AWUSER signal in bits, defaults to 0
  */
-abstract class AXI4WABase(val idW: Int, val addrW: Int) extends Bundle {
-  require(idW > 0, "the id width must be a positive integer")
+class WA(val addrW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {
   require(addrW > 0, "the address width must be a positive integer")
+  require(idW >= 0, "the id width must be a non-negative integer")
+  require(userW >= 0, "the user with must be a non-negative integer")
   val id      = Output(UInt(idW.W))
   val addr    = Output(UInt(addrW.W))
   val len     = Output(UInt(8.W))
@@ -87,50 +84,53 @@ abstract class AXI4WABase(val idW: Int, val addrW: Int) extends Bundle {
   val prot    = Output(UInt(3.W))
   val qos     = Output(UInt(4.W))
   val region  = Output(UInt(4.W))
+  val user    = Output(UInt(userW.W))
 }
-class AXI4WA(idW: Int, addrW: Int) extends AXI4WABase(idW, addrW)
-class AXI4WAUser(idW: Int, addrW: Int) extends AXI4WA(idW, addrW) with UserSignal
 
 /** AXI4 write data base interface
  * 
  * Defines the mandatory signals in the interface
  * 
  * @param dataW the width of the WDATA signal in bits
+ * @param userW the width of the WUSER signal in bits, defaults to 0
  */
-abstract class AXI4WDBase(val dataW: Int) extends Bundle {
+class WD(val dataW: Int, val userW: Int = 0) extends Bundle {
   require(dataW > 0, "the data width must be a positive integer")
   require(isPow2(dataW / 8), "the data width must be a power of 2 multiple of bytes")
+  require(userW >= 0, "the user with must be a non-negative integer")
   val data    = Output(UInt(dataW.W))
   val strb    = Output(UInt((dataW/8).W))
   val last    = Output(Bool())
+  val user    = Output(UInt(userW.W))
 }
-class AXI4WD(dataW: Int) extends AXI4WDBase(dataW)
-class AXI4WDUser(dataW: Int) extends AXI4WD(dataW) with UserSignal
 
 /** AXI4 write response base interface
  * 
  * Defines the mandatory signals in the interface
  * 
- * @param idW the width of the BID signal in bits
+ * @param idW the width of the BID signal in bits, defaults to 0
+ * @param userW the width of the BUSER signal in bits, defaults to 0
  */
-abstract class AXI4WRBase(val idW: Int) extends Bundle {
-  require(idW > 0, "the id width must be a positive integer")
+class WR(val idW: Int = 0, val userW: Int = 0) extends Bundle {
+  require(idW >= 0, "the id width must be a non-negative integer")
+  require(userW >= 0, "the user with must be a non-negative integer")
   val id      = Input(UInt(idW.W))
   val resp    = Input(UInt(2.W))
+  val user    = Input(UInt(userW.W))
 }
-class AXI4WR(idW: Int) extends AXI4WRBase(idW)
-class AXI4WRUser(idW: Int) extends AXI4WR(idW) with UserSignal
 
 /** AXI4 read address base interface
  * 
  * Defines the mandatory signals in the interface
  * 
- * @param idW the width of the ARID signal in bits
  * @param addrW the width of the ARADDR signal in bits
+ * @param idW the width of the ARID signal in bits, defaults to 0
+ * @param userW the width of the ARUSER signal in bits, defaults to 0
  */
-abstract class AXI4RABase(val idW: Int, val addrW: Int) extends Bundle {
-  require(idW > 0, "the id width must be a positive integer")
+class RA(val addrW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {
   require(addrW > 0, "the address width must be a positive integer")
+  require(idW >= 0, "the id width must be a non-negative integer")
+  require(userW >= 0, "the user with must be a non-negative integer")
   val id      = Output(UInt(idW.W))
   val addr    = Output(UInt(addrW.W))
   val len     = Output(UInt(8.W))
@@ -141,37 +141,38 @@ abstract class AXI4RABase(val idW: Int, val addrW: Int) extends Bundle {
   val prot    = Output(UInt(3.W))
   val qos     = Output(UInt(4.W))
   val region  = Output(UInt(4.W))
+  val user    = Output(UInt(userW.W))
 }
-class AXI4RA(idW: Int, addrW: Int) extends AXI4RABase(idW, addrW)
-class AXI4RAUser(idW: Int, addrW: Int) extends AXI4RA(idW, addrW) with UserSignal
 
 /** AXI4 read data base interface
  * 
  * Defines the mandatory signals in the interface
  * 
- * @param idW the width of the RID signal in bits
  * @param dataW the width of the RDATA signal in bits
+ * @param idW the width of the RID signal in bits, defaults to 0
+ * @param userW the width of the RUSER signal in bits, defaults to 0
  */
-abstract class AXI4RDBase(val idW: Int, val dataW: Int) extends Bundle {
-  require(idW > 0, "the id width must be a positive integer")
+class RD(val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {
   require(isPow2(dataW / 8), "the data width must be a power of 2 multiple of bytes")
+  require(idW >= 0, "the id width must be a non-negative integer")
+  require(userW >= 0, "the user with must be a non-negative integer")
   val id      = Input(UInt(idW.W))
   val data    = Input(UInt(dataW.W))
   val resp    = Input(UInt(2.W))
   val last    = Input(Bool())
+  val user    = Input(UInt(userW.W))
 }
-class AXI4RD(idW: Int, dataW: Int) extends AXI4RDBase(idW, dataW)
-class AXI4RDUser(idW: Int, dataW: Int) extends AXI4RD(idW, dataW) with UserSignal
 
 /** AXI4 master interface
  * 
  * Components meant to use this interface should extend it
  * 
- * @param idW the width of the ID signals in bits
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
+ * @param idW the width of the ID signals in bits, defaults to 0
+ * @param userW the width of the user signals in bits, defaults to 0
  */
-abstract class AXI4MasterBase(val idW: Int, val addrW: Int, val dataW: Int) extends Bundle {
+class MasterInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -180,30 +181,23 @@ abstract class AXI4MasterBase(val idW: Int, val addrW: Int, val dataW: Int) exte
    * [[ar]] is the read address channel
    * [[dr]] is the read data channel
    */
-  val aw = Decoupled(new AXI4WA(idW, addrW))
-  val dw = Decoupled(new AXI4WD(dataW))
-  val wr = Flipped(Decoupled(Flipped(new AXI4WR(idW))))
-  val ar = Decoupled(new AXI4RA(idW, addrW))
-  val dr = Flipped(Decoupled(Flipped(new AXI4RD(idW, dataW))))
-}
-class AXI4Master(idW: Int, addrW: Int, dataW: Int) extends AXI4MasterBase(idW, addrW, dataW)
-class AXI4MasterUser(idW: Int, addrW: Int, dataW: Int) extends AXI4Master(idW, addrW, dataW) {
-  override val aw = Decoupled(new AXI4WAUser(idW, addrW))
-  override val dw = Decoupled(new AXI4WDUser(dataW))
-  override val wr = Flipped(Decoupled(Flipped(new AXI4WRUser(idW))))
-  override val ar = Decoupled(new AXI4RAUser(idW, addrW))
-  override val dr = Flipped(Decoupled(Flipped(new AXI4RDUser(idW, dataW))))
+  val aw = Decoupled(new WA(addrW, idW, userW))
+  val dw = Decoupled(new WD(dataW, userW))
+  val wr = Flipped(Decoupled(Flipped(new WR(idW, userW))))
+  val ar = Decoupled(new RA(addrW, idW, userW))
+  val dr = Flipped(Decoupled(Flipped(new RD(dataW, idW, userW))))
 }
 
 /** AXI4 slave interface
  * 
  * Components meant to use this interface should extend it
  * 
- * @param idW the width of the ID signals in bits
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
+ * @param idW the width of the ID signals in bits, defaults to 0
+ * @param userW the width of the user signals in bits, defaults to 0
  */
-abstract class AXI4SlaveBase(val idW: Int, val addrW: Int, val dataW: Int) extends Bundle {  
+class SlaveInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {  
   /** Fields implementing each of the AXI channels
    * 
    * [[aw]] is the write address channel
@@ -212,17 +206,9 @@ abstract class AXI4SlaveBase(val idW: Int, val addrW: Int, val dataW: Int) exten
    * [[ar]] is the read address channel
    * [[dr]] is the read data channel
    */
-  val aw = Flipped(Decoupled(new AXI4WA(idW, addrW)))
-  val dw = Flipped(Decoupled(new AXI4WD(dataW)))
-  val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WR(idW)))))
-  val ar = Flipped(Decoupled(new AXI4RA(idW, addrW)))
-  val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RD(idW, dataW)))))
-}
-class AXI4Slave(idW: Int, addrW: Int, dataW: Int) extends AXI4SlaveBase(idW, addrW, dataW)
-class AXI4SlaveUser(idW: Int, addrW: Int, dataW: Int) extends AXI4Slave(idW, addrW, dataW) {
-  override val aw = Flipped(Decoupled(new AXI4WAUser(idW, addrW)))
-  override val dw = Flipped(Decoupled(new AXI4WDUser(dataW)))
-  override val wr = Flipped(Flipped(Decoupled(Flipped(new AXI4WRUser(idW)))))
-  override val ar = Flipped(Decoupled(new AXI4RAUser(idW, addrW)))
-  override val dr = Flipped(Flipped(Decoupled(Flipped(new AXI4RDUser(idW, dataW)))))
+  val aw = Flipped(Decoupled(new WA(addrW, idW, userW)))
+  val dw = Flipped(Decoupled(new WD(dataW, userW)))
+  val wr = Flipped(Flipped(Decoupled(Flipped(new WR(idW, userW)))))
+  val ar = Flipped(Decoupled(new RA(addrW, idW, userW)))
+  val dr = Flipped(Flipped(Decoupled(Flipped(new RD(dataW, idW, userW)))))
 }

@@ -74,7 +74,7 @@ class mymem extends BlackBox with HasBlackBoxResource {
 }
 
 /** Wrapper for mymem */
-class VivadoAXIMemory extends Slave(1, 10, 32) {
+class VivadoAXIMemory extends Slave(10, 32, 1) {
   /** Instantiate a memory */
   val mem = Module(new mymem())
 
@@ -96,6 +96,7 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
   mem.io.s00_axi_awprot   := aw.prot
   mem.io.s00_axi_awregion := aw.region
   mem.io.s00_axi_awqos    := aw.qos
+  // Leave user port unconnected
   mem.io.s00_axi_awvalid  := io.aw.valid
   io.aw.ready := mem.io.s00_axi_awready
 
@@ -103,12 +104,15 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
   mem.io.s00_axi_wdata    := dw.data
   mem.io.s00_axi_wstrb    := dw.strb
   mem.io.s00_axi_wlast    := dw.last
+  // Leave user port unconnected
   mem.io.s00_axi_wvalid   := io.dw.valid
   io.dw.ready := mem.io.s00_axi_wready
 
   /** Write response */
   wr.id := mem.io.s00_axi_bid 
   wr.resp := mem.io.s00_axi_bresp 
+  // Connect user port to constant 0
+  wr.user := 0.U
   io.wr.valid := mem.io.s00_axi_bvalid
   mem.io.s00_axi_bready   := io.wr.ready
 
@@ -123,6 +127,7 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
   mem.io.s00_axi_arprot   := ar.prot
   mem.io.s00_axi_arregion := ar.region
   mem.io.s00_axi_arqos    := ar.qos
+  // Leave user port unconnected
   mem.io.s00_axi_arvalid  := io.ar.valid
   io.ar.ready := mem.io.s00_axi_arready
 
@@ -131,6 +136,8 @@ class VivadoAXIMemory extends Slave(1, 10, 32) {
   dr.data := mem.io.s00_axi_rdata 
   dr.resp := mem.io.s00_axi_rresp 
   dr.last := mem.io.s00_axi_rlast 
+  // Connect user port to constant 0
+  dr.user := 0.U
   io.dr.valid := mem.io.s00_axi_rvalid
   mem.io.s00_axi_rready   := io.dr.ready
 

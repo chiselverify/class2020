@@ -14,22 +14,11 @@ import chisel3._
  * 
  * An empty class representing an AXI master
  *
- * @param idW the width of the ID signals in bits
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
+ * @param idW the width of the ID signals in bits, defaults to 0
+ * @param userW the width of the user signals in bits, defaults to 0
  */
-abstract class Master(val idW: Int, val addrW: Int, val dataW: Int) extends Module {
-  val io = IO(new AXI4Master(idW, addrW, dataW))
-}
-
-/** AXI4 master with user signals
- * 
- * An empty class representing an AXI master with user signals
- *
- * @param idW the width of the ID signals in bits
- * @param addrW the width of the address signals in bits
- * @param dataW the width of the data read/write signals in bits
- */
-abstract class MasterUser(override val idW: Int, override val addrW: Int, override val dataW: Int) extends Master(idW, addrW, dataW) {
-  override val io = IO(new AXI4MasterUser(idW, addrW, dataW))
+abstract class Master(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Module {
+  val io = IO(new MasterInterface(addrW, dataW, idW, userW))
 }

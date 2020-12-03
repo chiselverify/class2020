@@ -14,22 +14,11 @@ import chisel3._
  * 
  * An empty class representing an AXI slave
  *
- * @param idW the width of the ID signals in bits
  * @param addrW the width of the address signals in bits
  * @param dataW the width of the data read/write signals in bits
+ * @param idW the width of the ID signals in bits, defaults to 0
+ * @param userW the width of the user signals in bits, defaults to 0
  */
-abstract class Slave(val idW: Int, val addrW: Int, val dataW: Int) extends Module {
-  val io = IO(new AXI4Slave(idW, addrW, dataW))
-}
-
-/** AXI4 slave with user signals
- * 
- * An empty class representing an AXI slave with user signals
- *
- * @param idW the width of the ID signals in bits
- * @param addrW the width of the address signals in bits
- * @param dataW the width of the data read/write signals in bits
- */
-abstract class SlaveUser(override val idW: Int, override val addrW: Int, override val dataW: Int) extends Slave(idW, addrW, dataW) {
-  override val io = IO(new AXI4SlaveUser(idW, addrW, dataW))
+abstract class Slave(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Module {
+  val io = IO(new SlaveInterface(addrW, dataW, idW, userW))
 }

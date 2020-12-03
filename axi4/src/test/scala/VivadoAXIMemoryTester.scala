@@ -20,14 +20,14 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "initialize" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
     }
   }
 
   it should "write and read manually" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         def printCheck() = {
           println("AWREADY = " + dut.io.aw.ready.peek.litToBoolean)
@@ -92,7 +92,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "write and read with FIXED transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create write transaction
         master.createWriteTrx(0, Seq(42), size = 2)
@@ -123,7 +123,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "write and read with INCR transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create write transaction
         master.createWriteTrx(128, Seq.fill(128)(0x7FFFFFFF), len = 0x7F, size = 2, burst = BurstEncodings.Incr)
@@ -154,7 +154,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "write and read with WRAP transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // addr = 96
         // dtsize = 4 * 16 = 64
@@ -192,7 +192,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "handle multiple in-flight transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut => 
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create two write transactions
         val rng = new Random(42)
