@@ -10,3 +10,7 @@ project/metals.sbt
 
 # Ignore generated files
 target/
+test_run_dir/
+
+# Ignore IP files
+src/main/resources/

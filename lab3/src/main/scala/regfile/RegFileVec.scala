@@ -28,3 +28,7 @@ class RegFileVec(addrWidth: Int, dataWidth: Int) extends RegFile(addrWidth, data
         io.data2 := rf(addrReg2)
     }
 }
+
+object RegFileVecMain extends App {
+    chisel3.Driver.execute(Array[String](), () => new RegFileVec(5, 64))
+}

@@ -37,3 +37,7 @@ class RegFileMem(addrWidth: Int, dataWidth: Int) extends RegFile(addrWidth, data
         io.data2 := wDReg
     }
 }
+
+object RegFileMemMain extends App {
+    chisel3.Driver.execute(Array[String](), () => new RegFileMem(5, 64))
+}
