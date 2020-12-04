@@ -1,9 +1,8 @@
 # Verification of AMBA AXI Interfaced Components
 This project focuses on implementation of AXI4 master interface definitions and a small framework providing support for all of the defined transactions from the AXI master's point of view in the protocol.
 
-### Extras
-- Functional AXI slave (like above)
-  - Concurrent interfaces
+## TODO
+- Change bundles to simple signals instead of I/O
 - AXI Lite interface
 - AXI Stream interface (see [here](https://developer.arm.com/documentation/ihi0051/latest/))
 
