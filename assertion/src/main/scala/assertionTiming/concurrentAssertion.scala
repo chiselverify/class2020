@@ -29,8 +29,8 @@ object assertNever {
 
         // Assertion for single thread clock cycle 0
         assert(!cond(), message)
-        dut.clock.step(1)
         fork {
+            dut.clock.step(1)
             for (i <- 1 until cycles) {
                 assert(!cond(), message)
                 dut.clock.step(1)
@@ -45,8 +45,8 @@ object assertNeverEvent {
 
         // Assertion for single thread clock cycle 0
         assert(!cond(), message)
-        dut.clock.step(1)
         fork {
+            dut.clock.step(1)
             while (!event) {
                 assert(!cond(), message)
                 dut.clock.step(1)
@@ -63,8 +63,8 @@ object assertAlways {
 
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
-        dut.clock.step(1)
         fork {
+            dut.clock.step(1)
             for (i <- 1 until cycles) {
                 assert(cond(), message)
                 dut.clock.step(1)
@@ -79,8 +79,8 @@ object assertAlwaysEvent {
 
         // Assertion for single thread clock cycle 0
         assert(cond(), message)
-        dut.clock.step(1)
         fork {
+            dut.clock.step(1)
             while (!event) {
                 assert(cond(), message)
                 dut.clock.step(1)
@@ -100,8 +100,8 @@ object assertEventually {
         var i = 0
 
         assert(!cond(), message)
-        dut.clock.step(1)
         fork {
+            dut.clock.step(1)
             while (!cond()) {
                 if (i == cycles) {
                     assert(false, message)
@@ -117,7 +117,9 @@ object assertEventually {
 object assertEventuallyEvent {
     def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
 
+        assert(!cond(), message)
         fork {
+            dut.clock.step(1)
             while (!cond()) {
                 if (event) {
                     assert(false, message)
@@ -140,7 +142,9 @@ object assertEventuallyAlways {
         var i = 0
         var k = 0
 
+        assert(!cond(), message)
         fork {
+            dut.clock.step(1)
             while (!cond()) {
                 if (i == cycles) {
                     assert(false, message)
@@ -162,8 +166,10 @@ object assertEventuallyAlwaysEvent {
     def apply[T <: Module](dut: T, cond: () => Boolean = () => true, event: Boolean = false, message: String = "Error") = {
 
         var i = 1
-
+        assert(!cond(), message)
         fork {
+            dut.clock.step(1)
+
             while (!cond()) {
                 if (event) {
                     assert(false, message)
