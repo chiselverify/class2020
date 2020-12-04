@@ -54,7 +54,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
 
   /** Default values on all signals */
   // Address write
-  aw.bits.id.poke(0.U)
+  if (aw.bits.idW > 0) aw.bits.id.poke(0.U)
   aw.bits.addr.poke(0.U)
   aw.bits.len.poke(0.U)
   aw.bits.size.poke(0.U)
@@ -64,19 +64,21 @@ class FunctionalMaster[T <: Slave](dut: T) {
   aw.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
   aw.bits.qos.poke(0.U)
   aw.bits.region.poke(0.U)
+  if (aw.bits.userW > 0) aw.bits.user.poke(0.U) 
   aw.valid.poke(false.B)
   
   // Data write
   dw.bits.data.poke(0.U)
   dw.bits.strb.poke(0.U)
   dw.bits.last.poke(false.B)
+  if (dw.bits.userW > 0) dw.bits.user.poke(0.U)
   dw.valid.poke(false.B)
 
   // Write response
   wr.ready.poke(false.B)
 
   // Address read
-  ar.bits.id.poke(0.U)
+  if (ar.bits.idW > 0) ar.bits.id.poke(0.U)
   ar.bits.addr.poke(0.U)
   ar.bits.len.poke(0.U)
   ar.bits.size.poke(0.U)
@@ -86,6 +88,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
   ar.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
   ar.bits.qos.poke(0.U)
   ar.bits.region.poke(0.U)
+  if (ar.bits.userW > 0) ar.bits.user.poke(0.U)
   ar.valid.poke(false.B)
 
   // Data read
@@ -122,7 +125,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
 
       /** Write address to slave */
       aw.valid.poke(true.B)
-      aw.bits.id.poke(head.id.U)
+      if (aw.bits.idW > 0) aw.bits.id.poke(head.id.U)
       aw.bits.addr.poke(head.addr.U)
       aw.bits.len.poke(head.len.U)
       aw.bits.size.poke(head.size.U)
@@ -132,6 +135,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
       aw.bits.prot.poke(head.prot)
       aw.bits.qos.poke(head.qos)
       aw.bits.region.poke(head.region)
+      if (aw.bits.userW > 0) aw.bits.user.poke(head.user)
       while (!aw.ready.peek.litToBoolean) {
         clk.step()
       }
@@ -163,11 +167,12 @@ class FunctionalMaster[T <: Slave](dut: T) {
       /** Write data to slave */
       dw.valid.poke(true.B)
       while (!head.complete) {
-        val (data, strb, last) = head.next
+        val (data, strb, last, user) = head.next
         println("Write " + data.litValue + " with strobe " + strb.toString + " and last " + last.litToBoolean)
         dw.bits.data.poke(data)
         dw.bits.strb.poke(strb)
         dw.bits.last.poke(last)
+        if (dw.bits.userW > 0) dw.bits.user.poke(user)
         while (!dw.ready.peek.litToBoolean) {
           clk.step()
         }
@@ -202,7 +207,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
       while (!wr.valid.peek.litToBoolean) {
         clk.step()
       }
-      responses = responses :+ (new Response(wr.bits.resp.peek, wr.bits.id.peek.litValue))
+      responses = responses :+ (new Response(wr.bits.resp.peek, if (wr.bits.idW > 0) wr.bits.id.peek.litValue else 0))
       wr.ready.poke(false.B)
 
       /** Update queue */
@@ -225,7 +230,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
 
       /** Write address to slave */
       ar.valid.poke(true.B)
-      ar.bits.id.poke(head.id.U)
+      if (ar.bits.idW > 0) ar.bits.id.poke(head.id.U)
       ar.bits.addr.poke(head.addr.U)
       ar.bits.len.poke(head.len.U)
       ar.bits.size.poke(head.size.U)
@@ -235,6 +240,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
       ar.bits.prot.poke(head.prot)
       ar.bits.qos.poke(head.qos)
       ar.bits.region.poke(head.region)
+      if (ar.bits.userW > 0) ar.bits.user.poke(head.user)
       while (!ar.ready.peek.litToBoolean) {
         clk.step()
       }

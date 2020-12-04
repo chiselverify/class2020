@@ -29,6 +29,7 @@ trait Transaction {
  * @param prot optional protection type, defaults to non-secure unprivileged data access
  * @param qos optional QoS, defaults to 0
  * @param region optional region, defaults to 0
+ * @param user optional user, defaults to 0
  */
 class WriteTransaction(
   val addr: BigInt, 
@@ -42,7 +43,8 @@ class WriteTransaction(
   val cache: UInt = MemoryEncodings.DeviceNonbuf, 
   val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
   val qos: UInt = 0.U, 
-  val region: UInt = 0.U) extends Transaction {
+  val region: UInt = 0.U,
+  val user: UInt = 0.U) extends Transaction {
   private[this] val numBytes = 1 << size
   private[this] val dtsize = numBytes * data.length
   private[this] val lowerBoundary = (addr / dtsize) * dtsize
@@ -94,7 +96,7 @@ class WriteTransaction(
     count += 1
 
     /** Return data to write */
-    (data(count-1).U, strb, complete.B)
+    (data(count-1).U, strb, complete.B, user)
   }
   def complete = data.length == count
 }
@@ -111,6 +113,7 @@ class WriteTransaction(
  * @param prot optional protection type, defaults to non-secure unprivileged data access
  * @param qos optional QoS, defaults to 0
  * @param region optional region, defaults to 0
+ * @param user optional user, defaults to 0
  */
 class ReadTransaction(
   val addr: BigInt, 
@@ -122,7 +125,8 @@ class ReadTransaction(
   val cache: UInt = MemoryEncodings.DeviceNonbuf, 
   val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
   val qos: UInt = 0.U, 
-  val region: UInt = 0.U) extends Transaction {
+  val region: UInt = 0.U,
+  val user: UInt = 0.U) extends Transaction {
   var data = Seq[BigInt]()
 
   private[this] var _addrSent = false
