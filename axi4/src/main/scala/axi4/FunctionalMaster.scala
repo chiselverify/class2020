@@ -39,56 +39,33 @@ class FunctionalMaster[T <: Slave](dut: T) {
   private[this] var awaitingWAddr = Seq[WriteTransaction]()
   private[this] var awaitingWrite = Seq[WriteTransaction]()
   private[this] var awaitingResp  = Seq[WriteTransaction]()
-  private[this] var responses      = Seq[Response]()
+  private[this] var responses     = Seq[Response]()
   private[this] var wAddrT: TesterThreadList = _
   private[this] var writeT: TesterThreadList = _
-  private[this] var respT: TesterThreadList  = _
+  private[this] var respT:  TesterThreadList = _
   // For reads
   private[this] var awaitingRAddr = Seq[ReadTransaction]()
   private[this] var awaitingRead  = Seq[ReadTransaction]()
   private[this] var readValues    = Seq[Seq[BigInt]]()
   private[this] var rAddrT: TesterThreadList = _
-  private[this] var readT: TesterThreadList  = _
+  private[this] var readT:  TesterThreadList = _
   // For random data
   private[this] val rng = new Random(42)
 
   /** Default values on all signals */
   // Address write
-  if (aw.bits.idW > 0) aw.bits.id.poke(0.U)
-  aw.bits.addr.poke(0.U)
-  aw.bits.len.poke(0.U)
-  aw.bits.size.poke(0.U)
-  aw.bits.burst.poke(BurstEncodings.Fixed)
-  aw.bits.lock.poke(LockEncodings.NormalAccess)
-  aw.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
-  aw.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
-  aw.bits.qos.poke(0.U)
-  aw.bits.region.poke(0.U)
-  if (aw.bits.userW > 0) aw.bits.user.poke(0.U) 
+  aw.bits.pokePartial(WA.default(aw.bits))
   aw.valid.poke(false.B)
   
   // Data write
-  dw.bits.data.poke(0.U)
-  dw.bits.strb.poke(0.U)
-  dw.bits.last.poke(false.B)
-  if (dw.bits.userW > 0) dw.bits.user.poke(0.U)
+  dw.bits.pokePartial(WD.default(dw.bits))
   dw.valid.poke(false.B)
 
   // Write response
   wr.ready.poke(false.B)
 
   // Address read
-  if (ar.bits.idW > 0) ar.bits.id.poke(0.U)
-  ar.bits.addr.poke(0.U)
-  ar.bits.len.poke(0.U)
-  ar.bits.size.poke(0.U)
-  ar.bits.burst.poke(BurstEncodings.Fixed)
-  ar.bits.lock.poke(LockEncodings.NormalAccess)
-  ar.bits.cache.poke(MemoryEncodings.DeviceNonbuf)
-  ar.bits.prot.poke(ProtectionEncodings.DataNsecUpriv)
-  ar.bits.qos.poke(0.U)
-  ar.bits.region.poke(0.U)
-  if (ar.bits.userW > 0) ar.bits.user.poke(0.U)
+  ar.bits.pokePartial(RA.default(ar.bits))
   ar.valid.poke(false.B)
 
   // Data read

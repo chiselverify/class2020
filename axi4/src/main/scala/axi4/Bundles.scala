@@ -10,6 +10,7 @@ package axi4
 
 import chisel3._
 import chisel3.util.isPow2
+import chisel3.experimental.BundleLiterals._
 
 /** AXI4 write address
  * 
@@ -39,9 +40,24 @@ object WA {
    * @param addrW the width of the AWADDR signal in bits
    * @param idW the width of the AWID signal in bits, defaults to 0
    * @param userW the width of the AWUSER signal in bits, defaults to 0
-   * @return
+   * @return an unitialized WA object
    */
   def apply(addrW: Int, idW: Int = 0, userW: Int = 0) = new WA(addrW, idW, userW)
+
+  /** Default values for this channel
+   *
+   * @param in a WA object
+   * @return an initialized (hardware) WA object
+   */
+  def default(in: WA) = {
+    var defLits = Seq((x: WA) => x.addr -> 0.U, (x: WA) => x.len -> 0.U, (x: WA) => x.size -> 0.U, 
+      (x: WA) => x.burst -> BurstEncodings.Fixed, (x: WA) => x.lock -> LockEncodings.NormalAccess, 
+      (x: WA) => x.cache -> MemoryEncodings.DeviceNonbuf, (x: WA) => x.prot -> ProtectionEncodings.DataNsecUpriv,
+      (x: WA) => x.qos -> 0.U, (x: WA) => x.region -> 0.U)
+    if (in.idW > 0) defLits = defLits :+ ((x: WA) => x.id -> 0.U)
+    if (in.userW > 0) defLits = defLits :+ ((x: WA) => x.user -> 0.U)
+    (new WA(in.addrW, in.idW, in.userW)).Lit(defLits :_*)
+  }
 }
 
 /** AXI4 write data
@@ -66,6 +82,17 @@ object WD {
    * @return an unitialized WD object
    */
   def apply(dataW: Int, userW: Int = 0) = new WD(dataW, userW)
+
+  /** Default values for this channel
+   *
+   * @param in a WD object
+   * @return an initialized (hardware) WD object
+   */
+  def default(in: WD) = {
+    var defLits = Seq((x: WD) => x.data -> 0.U, (x: WD) => x.strb -> 0.U, (x: WD) => x.last -> false.B)
+    if (in.userW > 0) defLits = defLits :+ ((x: WD) => x.user -> 0.U)
+    (new WD(in.dataW, in.userW)).Lit(defLits :_*)
+  }
 }
 
 /** AXI4 write response
@@ -88,6 +115,18 @@ object WR {
    * @return an unitialized WR object
    */
   def apply(idW: Int = 0, userW: Int = 0) = new WR(idW, userW)
+
+  /** Default values for this channel
+   *
+   * @param in a WR object
+   * @return an initialized (hardware) WR object
+   */
+  def default(in: WR) = {
+    var defLits = Seq((x: WR) => x.resp -> ResponseEncodings.Okay)
+    if (in.idW > 0) defLits = defLits :+ ((x: WR) => x.id -> 0.U)
+    if (in.userW > 0) defLits = defLits :+ ((x: WR) => x.user -> 0.U)
+    (new WR(in.idW, in.userW)).Lit(defLits :_*)
+  }
 }
 
 /** AXI4 read address
@@ -121,6 +160,21 @@ object RA {
    * @return an unitialized RA object
    */
   def apply(addrW: Int, idW: Int = 0, userW: Int = 0) = new RA(addrW, idW, userW)
+
+  /** Default values for this channel
+   *
+   * @param in an RA object
+   * @return an initialized (hardware) RA object
+   */
+  def default(in: RA) = {
+    var defLits = Seq((x: RA) => x.addr -> 0.U, (x: RA) => x.len -> 0.U, (x: RA) => x.size -> 0.U, 
+      (x: RA) => x.burst -> BurstEncodings.Fixed, (x: RA) => x.lock -> LockEncodings.NormalAccess, 
+      (x: RA) => x.cache -> MemoryEncodings.DeviceNonbuf, (x: RA) => x.prot -> ProtectionEncodings.DataNsecUpriv,
+      (x: RA) => x.qos -> 0.U, (x: RA) => x.region -> 0.U)
+    if (in.idW > 0) defLits = defLits :+ ((x: RA) => x.id -> 0.U)
+    if (in.userW > 0) defLits = defLits :+ ((x: RA) => x.user -> 0.U)
+    (new RA(in.addrW, in.idW, in.userW)).Lit(defLits :_*)
+  }
 }
 
 /** AXI4 read data
@@ -148,4 +202,17 @@ object RD {
    * @return an uninitialized RD object
    */
   def apply(dataW: Int, idW: Int = 0, userW: Int = 0) = new RD(dataW, idW, userW)
+
+  /** Default values for this channel
+   *
+   * @param in an RD object
+   * @return an initialized (hardware) RD object
+   */
+  def default(in: RD) = {
+    var defLits = Seq((x: RD) => x.data -> 0.U, (x: RD) => x.resp -> ResponseEncodings.Okay,
+      (x: RD) => x.last -> false.B)
+    if (in.idW > 0) defLits = defLits :+ ((x: RD) => x.id -> 0.U)
+    if (in.userW > 0) defLits = defLits :+ ((x: RD) => x.user -> 0.U)
+    (new RD(in.dataW, in.idW, in.userW)).Lit(defLits :_*)
+  }
 }
