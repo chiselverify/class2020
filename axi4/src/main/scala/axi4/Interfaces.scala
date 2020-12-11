@@ -21,17 +21,17 @@ import chisel3.util.Decoupled
 class MasterInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {
   /** Fields implementing each of the AXI channels
    * 
-   * [[aw]] is the write address channel
-   * [[dw]] is the write data channel
+   * [[wa]] is the write address channel
+   * [[wd]] is the write data channel
    * [[wr]] is the write response channel
-   * [[ar]] is the read address channel
-   * [[dr]] is the read data channel
+   * [[ra]] is the read address channel
+   * [[rd]] is the read data channel
    */
-  val aw = Decoupled(Output(WA(addrW, idW, userW))) //Decoupled(new WA(addrW, idW, userW))
-  val dw = Decoupled(Output(WD(dataW, userW))) //Decoupled(new WD(dataW, userW))
+  val wa = Decoupled(Output(WA(addrW, idW, userW))) //Decoupled(new WA(addrW, idW, userW))
+  val wd = Decoupled(Output(WD(dataW, userW))) //Decoupled(new WD(dataW, userW))
   val wr = Flipped(Decoupled(Output(WR(idW, userW)))) //Flipped(Decoupled(Flipped(new WR(idW, userW))))
-  val ar = Decoupled(RA(addrW, idW, userW)) //Decoupled(new RA(addrW, idW, userW))
-  val dr = Flipped(Decoupled(Output(RD(dataW, idW, userW)))) //Flipped(Decoupled(Flipped(new RD(dataW, idW, userW))))
+  val ra = Decoupled(RA(addrW, idW, userW)) //Decoupled(new RA(addrW, idW, userW))
+  val rd = Flipped(Decoupled(Output(RD(dataW, idW, userW)))) //Flipped(Decoupled(Flipped(new RD(dataW, idW, userW))))
 }
 
 /** AXI4 slave interface
@@ -44,15 +44,15 @@ class MasterInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val user
 class SlaveInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Bundle {  
   /** Fields implementing each of the AXI channels
    * 
-   * [[aw]] is the write address channel
-   * [[dw]] is the write data channel
+   * [[wa]] is the write address channel
+   * [[wd]] is the write data channel
    * [[wr]] is the write response channel
-   * [[ar]] is the read address channel
-   * [[dr]] is the read data channel
+   * [[ra]] is the read address channel
+   * [[rd]] is the read data channel
    */
-  val aw = Flipped(Decoupled(Output(WA(addrW, idW, userW)))) //Flipped(Decoupled(new WA(addrW, idW, userW)))
-  val dw = Flipped(Decoupled(Output(WD(dataW, userW)))) //Flipped(Decoupled(new WD(dataW, userW)))
+  val wa = Flipped(Decoupled(Output(WA(addrW, idW, userW)))) //Flipped(Decoupled(new WA(addrW, idW, userW)))
+  val wd = Flipped(Decoupled(Output(WD(dataW, userW)))) //Flipped(Decoupled(new WD(dataW, userW)))
   val wr = Decoupled(Output(WR(idW, userW))) //Flipped(Flipped(Decoupled(Flipped(new WR(idW, userW)))))
-  val ar = Flipped(Decoupled(Output(RA(addrW, idW, userW)))) //Flipped(Decoupled(new RA(addrW, idW, userW)))
-  val dr = Decoupled(Output(RD(dataW, idW, userW))) //Flipped(Flipped(Decoupled(Flipped(new RD(dataW, idW, userW)))))
+  val ra = Flipped(Decoupled(Output(RA(addrW, idW, userW)))) //Flipped(Decoupled(new RA(addrW, idW, userW)))
+  val rd = Decoupled(Output(RD(dataW, idW, userW))) //Flipped(Flipped(Decoupled(Flipped(new RD(dataW, idW, userW)))))
 }

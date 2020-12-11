@@ -79,34 +79,34 @@ class VivadoAXIMemory extends Slave(10, 32, 1) {
   val mem = Module(new mymem())
 
   /** Connect it up with the slave's AXI interface */
-  val aw = io.aw.bits
-  val dw = io.dw.bits
+  val wa = io.wa.bits
+  val wd = io.wd.bits
   val wr = io.wr.bits
-  val ar = io.ar.bits
-  val dr = io.dr.bits
+  val ra = io.ra.bits
+  val rd = io.rd.bits
   
   /** Address write */
-  mem.io.s00_axi_awid     := aw.id
-  mem.io.s00_axi_awaddr   := aw.addr
-  mem.io.s00_axi_awlen    := aw.len
-  mem.io.s00_axi_awsize   := aw.size
-  mem.io.s00_axi_awburst  := aw.burst
-  mem.io.s00_axi_awlock   := aw.lock
-  mem.io.s00_axi_awcache  := aw.cache
-  mem.io.s00_axi_awprot   := aw.prot
-  mem.io.s00_axi_awregion := aw.region
-  mem.io.s00_axi_awqos    := aw.qos
+  mem.io.s00_axi_awid     := wa.id
+  mem.io.s00_axi_awaddr   := wa.addr
+  mem.io.s00_axi_awlen    := wa.len
+  mem.io.s00_axi_awsize   := wa.size
+  mem.io.s00_axi_awburst  := wa.burst
+  mem.io.s00_axi_awlock   := wa.lock
+  mem.io.s00_axi_awcache  := wa.cache
+  mem.io.s00_axi_awprot   := wa.prot
+  mem.io.s00_axi_awregion := wa.region
+  mem.io.s00_axi_awqos    := wa.qos
   // Leave user port unconnected
-  mem.io.s00_axi_awvalid  := io.aw.valid
-  io.aw.ready := mem.io.s00_axi_awready
+  mem.io.s00_axi_awvalid  := io.wa.valid
+  io.wa.ready := mem.io.s00_axi_awready
 
   /** Data write */
-  mem.io.s00_axi_wdata    := dw.data
-  mem.io.s00_axi_wstrb    := dw.strb
-  mem.io.s00_axi_wlast    := dw.last
+  mem.io.s00_axi_wdata    := wd.data
+  mem.io.s00_axi_wstrb    := wd.strb
+  mem.io.s00_axi_wlast    := wd.last
   // Leave user port unconnected
-  mem.io.s00_axi_wvalid   := io.dw.valid
-  io.dw.ready := mem.io.s00_axi_wready
+  mem.io.s00_axi_wvalid   := io.wd.valid
+  io.wd.ready := mem.io.s00_axi_wready
 
   /** Write response */
   wr.id := mem.io.s00_axi_bid 
@@ -117,29 +117,29 @@ class VivadoAXIMemory extends Slave(10, 32, 1) {
   mem.io.s00_axi_bready   := io.wr.ready
 
   /** Address read */
-  mem.io.s00_axi_arid     := ar.id
-  mem.io.s00_axi_araddr   := ar.addr
-  mem.io.s00_axi_arlen    := ar.len
-  mem.io.s00_axi_arsize   := ar.size
-  mem.io.s00_axi_arburst  := ar.burst
-  mem.io.s00_axi_arlock   := ar.lock
-  mem.io.s00_axi_arcache  := ar.cache
-  mem.io.s00_axi_arprot   := ar.prot
-  mem.io.s00_axi_arregion := ar.region
-  mem.io.s00_axi_arqos    := ar.qos
+  mem.io.s00_axi_arid     := ra.id
+  mem.io.s00_axi_araddr   := ra.addr
+  mem.io.s00_axi_arlen    := ra.len
+  mem.io.s00_axi_arsize   := ra.size
+  mem.io.s00_axi_arburst  := ra.burst
+  mem.io.s00_axi_arlock   := ra.lock
+  mem.io.s00_axi_arcache  := ra.cache
+  mem.io.s00_axi_arprot   := ra.prot
+  mem.io.s00_axi_arregion := ra.region
+  mem.io.s00_axi_arqos    := ra.qos
   // Leave user port unconnected
-  mem.io.s00_axi_arvalid  := io.ar.valid
-  io.ar.ready := mem.io.s00_axi_arready
+  mem.io.s00_axi_arvalid  := io.ra.valid
+  io.ra.ready := mem.io.s00_axi_arready
 
   /** Data read */
-  dr.id := mem.io.s00_axi_rid
-  dr.data := mem.io.s00_axi_rdata 
-  dr.resp := mem.io.s00_axi_rresp 
-  dr.last := mem.io.s00_axi_rlast 
+  rd.id := mem.io.s00_axi_rid
+  rd.data := mem.io.s00_axi_rdata 
+  rd.resp := mem.io.s00_axi_rresp 
+  rd.last := mem.io.s00_axi_rlast 
   // Connect user port to constant 0
-  dr.user := 0.U
-  io.dr.valid := mem.io.s00_axi_rvalid
-  mem.io.s00_axi_rready   := io.dr.ready
+  rd.user := 0.U
+  io.rd.valid := mem.io.s00_axi_rvalid
+  mem.io.s00_axi_rready   := io.rd.ready
 
   /** Clock and reset */
   mem.io.s00_axi_aclk     := clock

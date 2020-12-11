@@ -10,6 +10,7 @@ package axi4
 
 import chisel3._
 import chisel3.util._
+import chisel3.experimental.BundleLiterals._
 import chiseltest._
 import chiseltest.internal.TesterThreadList
 import scala.util.Random
@@ -26,11 +27,11 @@ class FunctionalMaster[T <: Slave](dut: T) {
   private[this] val dataW   = dut.dataW
 
   /** Shortcuts to the channel IO */
-  private[this] val aw      = dut.io.aw
-  private[this] val dw      = dut.io.dw
+  private[this] val wa      = dut.io.wa
+  private[this] val wd      = dut.io.wd
   private[this] val wr      = dut.io.wr
-  private[this] val ar      = dut.io.ar
-  private[this] val dr      = dut.io.dr
+  private[this] val ra      = dut.io.ra
+  private[this] val rd      = dut.io.rd
   private[this] val resetn  = dut.reset
   private[this] val clk     = dut.clock
 
@@ -54,22 +55,22 @@ class FunctionalMaster[T <: Slave](dut: T) {
 
   /** Default values on all signals */
   // Address write
-  aw.bits.pokePartial(WA.default(aw.bits))
-  aw.valid.poke(false.B)
+  wa.bits.pokePartial(WA.default(wa.bits))
+  wa.valid.poke(false.B)
   
   // Data write
-  dw.bits.pokePartial(WD.default(dw.bits))
-  dw.valid.poke(false.B)
+  wd.bits.pokePartial(WD.default(wd.bits))
+  wd.valid.poke(false.B)
 
   // Write response
   wr.ready.poke(false.B)
 
   // Address read
-  ar.bits.pokePartial(RA.default(ar.bits))
-  ar.valid.poke(false.B)
+  ra.bits.pokePartial(RA.default(ra.bits))
+  ra.valid.poke(false.B)
 
   // Data read
-  dr.ready.poke(false.B)
+  rd.ready.poke(false.B)
 
   // Reset slave device controller
   resetn.poke(false.B)
@@ -101,23 +102,11 @@ class FunctionalMaster[T <: Slave](dut: T) {
       val head = awaitingWAddr.head
 
       /** Write address to slave */
-      aw.valid.poke(true.B)
-      if (aw.bits.idW > 0) aw.bits.id.poke(head.id.U)
-      aw.bits.addr.poke(head.addr.U)
-      aw.bits.len.poke(head.len.U)
-      aw.bits.size.poke(head.size.U)
-      aw.bits.burst.poke(head.burst)
-      aw.bits.lock.poke(head.lock)
-      aw.bits.cache.poke(head.cache)
-      aw.bits.prot.poke(head.prot)
-      aw.bits.qos.poke(head.qos)
-      aw.bits.region.poke(head.region)
-      if (aw.bits.userW > 0) aw.bits.user.poke(head.user)
-      while (!aw.ready.peek.litToBoolean) {
-        clk.step()
-      }
+      wa.valid.poke(true.B)
+      wa.bits.pokePartial(head.ctrl)
+      while (!wa.ready.peek.litToBoolean) clk.step()
       clk.step()
-      aw.valid.poke(false.B) 
+      wa.valid.poke(false.B) 
 
       /** Update transaction and queue */
       awaitingWAddr = awaitingWAddr.tail
@@ -137,25 +126,18 @@ class FunctionalMaster[T <: Slave](dut: T) {
     while (!awaitingWrite.isEmpty) {
       /** Get the current transaction */
       val head = awaitingWrite.head
-      while (!head.addrSent) {
-        clk.step()
-      }
+      while (!head.addrSent) clk.step()
 
       /** Write data to slave */
-      dw.valid.poke(true.B)
+      wd.valid.poke(true.B)
       while (!head.complete) {
-        val (data, strb, last, user) = head.next
-        println("Write " + data.litValue + " with strobe " + strb.toString + " and last " + last.litToBoolean)
-        dw.bits.data.poke(data)
-        dw.bits.strb.poke(strb)
-        dw.bits.last.poke(last)
-        if (dw.bits.userW > 0) dw.bits.user.poke(user)
-        while (!dw.ready.peek.litToBoolean) {
-          clk.step()
-        }
+        val nextVal = head.next
+        wd.bits.pokePartial(nextVal)
+        println("Write " + nextVal.data.litValue + " with strobe " + nextVal.strb.toString + " and last " + nextVal.last.litToBoolean)
+        while (!wd.ready.peek.litToBoolean) clk.step()
         clk.step()
       }
-      dw.valid.poke(false.B)
+      wd.valid.poke(false.B)
 
       /** Update transaction and queue */
       awaitingWrite = awaitingWrite.tail
@@ -175,15 +157,11 @@ class FunctionalMaster[T <: Slave](dut: T) {
     while (!awaitingResp.isEmpty) {
       /** Get the current transaction */
       val head = awaitingResp.head
-      while (!head.dataSent) {
-        clk.step()
-      }
+      while (!head.dataSent) clk.step()
 
       /** Indicate that interface is ready and wait for response */
       wr.ready.poke(true.B)
-      while (!wr.valid.peek.litToBoolean) {
-        clk.step()
-      }
+      while (!wr.valid.peek.litToBoolean) clk.step()
       responses = responses :+ (new Response(wr.bits.resp.peek, if (wr.bits.idW > 0) wr.bits.id.peek.litValue else 0))
       wr.ready.poke(false.B)
 
@@ -206,23 +184,11 @@ class FunctionalMaster[T <: Slave](dut: T) {
       val head = awaitingRAddr.head 
 
       /** Write address to slave */
-      ar.valid.poke(true.B)
-      if (ar.bits.idW > 0) ar.bits.id.poke(head.id.U)
-      ar.bits.addr.poke(head.addr.U)
-      ar.bits.len.poke(head.len.U)
-      ar.bits.size.poke(head.size.U)
-      ar.bits.burst.poke(head.burst)
-      ar.bits.lock.poke(head.lock)
-      ar.bits.cache.poke(head.cache)
-      ar.bits.prot.poke(head.prot)
-      ar.bits.qos.poke(head.qos)
-      ar.bits.region.poke(head.region)
-      if (ar.bits.userW > 0) ar.bits.user.poke(head.user)
-      while (!ar.ready.peek.litToBoolean) {
-        clk.step()
-      }
+      ra.valid.poke(true.B)
+      ra.bits.pokePartial(head.ctrl)
+      while (!ra.ready.peek.litToBoolean) clk.step()
       clk.step()
-      ar.valid.poke(false.B)
+      ra.valid.poke(false.B)
 
       /** Update transaction and queue */
       awaitingRAddr = awaitingRAddr.tail
@@ -242,22 +208,20 @@ class FunctionalMaster[T <: Slave](dut: T) {
     while (!awaitingRead.isEmpty) {
       /** Get the current transaction */
       val head = awaitingRead.head
-      while (!head.addrSent) {
-        clk.step()
-      }
+      while (!head.addrSent) clk.step()
 
       /** Read data from slave */
-      dr.ready.poke(true.B)
+      rd.ready.poke(true.B)
       while (!head.complete) {
-        if (dr.valid.peek.litToBoolean) {
-          val (data, resp, last) = (dr.bits.data.peek, dr.bits.resp.peek, dr.bits.last.peek)
+        if (rd.valid.peek.litToBoolean) {
+          val (data, resp, last) = (rd.bits.data.peek, rd.bits.resp.peek, rd.bits.last.peek)
           println(s"Read " + data.litValue + " with response " + resp.litValue + " and last " + last.litToBoolean)
           head.add(data.litValue)
         }
         clk.step()
       }
       readValues = readValues :+ head.data
-      dr.ready.poke(false.B)
+      rd.ready.poke(false.B)
 
       /** Update queue */
       awaitingRead = awaitingRead.tail
@@ -294,6 +258,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
    * @param prot optional protection type, defaults to non-secure unprivileged data access
    * @param qos optional QoS, defaults to 0
    * @param region optional region, defaults to 0
+   * @param user optional user, defaults to 0
    * 
    * @note [[addr]] must fit within the slave DUT's write address width
    * @note entries in [[data]] must fit within the slave DUT's write data width, and the list can have at most [[len]] entries
@@ -311,7 +276,8 @@ class FunctionalMaster[T <: Slave](dut: T) {
     cache: UInt = MemoryEncodings.DeviceNonbuf, 
     prot: UInt = ProtectionEncodings.DataNsecUpriv, 
     qos: UInt = 0.U, 
-    region: UInt = 0.U) = {
+    region: UInt = 0.U,
+    user: UInt = 0.U) = {
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
 
@@ -343,11 +309,15 @@ class FunctionalMaster[T <: Slave](dut: T) {
     val tdata = if (data != Nil) {
       require(data.length == burstLen, "given data length should match burst length")
       data
-    } else
-      Seq.fill(burstLen) { BigInt(numBytes, rng) }
+    } else Seq.fill(burstLen) { BigInt(numBytes, rng) }
 
     /** Create and queue new write transaction */
-    val trx = new WriteTransaction(addr, data, dataW, id, len, size, burst, lock, cache, prot, qos, region)
+    var lits = Seq((x: WA) => x.addr -> addr.U, (x: WA) => x.len -> len.U, (x: WA) => x.size -> size.U,
+      (x: WA) => x.burst -> burst, (x: WA) => x.lock -> lock, (x: WA) => x.cache -> cache,
+      (x: WA) => x.prot -> prot, (x: WA) => x.qos -> qos, (x: WA) => x.region -> region)
+    if (wa.bits.idW > 0) lits = lits :+ ((x: WA) => x.id -> id.U)
+    if (wa.bits.userW > 0) lits = lits :+ ((x: WA) => x.user -> user)
+    val trx = new WriteTransaction((new WA(wa.bits.addrW, wa.bits.idW, wa.bits.userW)).Lit(lits :_*), wd.bits, data)
     awaitingWAddr = awaitingWAddr :+ trx
     awaitingWrite = awaitingWrite :+ trx
     awaitingResp  = awaitingResp  :+ trx
@@ -370,6 +340,7 @@ class FunctionalMaster[T <: Slave](dut: T) {
    * @param prot optional protection type, defaults to non-secure unprivileged data access
    * @param qos optional QoS, defaults to 0
    * @param region optional region, defaults to 0
+   * @param user optional user, defaults to 0
    * 
    * @note [[addr]] must fit within the slave DUT's write address width
    * @note [[id]] must fit within DUT's ID width, likewise [[size]] cannot be greater than the DUT's write data width
@@ -385,7 +356,8 @@ class FunctionalMaster[T <: Slave](dut: T) {
     cache: UInt = MemoryEncodings.DeviceNonbuf, 
     prot: UInt = ProtectionEncodings.DataNsecUpriv, 
     qos: UInt = 0.U, 
-    region: UInt = 0.U) = {
+    region: UInt = 0.U,
+    user: UInt = 0.U) = {
     require(log2Up(addr) <= addrW, s"address must fit within DUT's write address width (got $addr)")
     require(log2Up(id) <= idW, s"ID must fit within DUT's ID width (got $id)")
 
@@ -414,7 +386,12 @@ class FunctionalMaster[T <: Slave](dut: T) {
     }
 
     /** Create and queue new read transaction */
-    val trx = new ReadTransaction(addr, id, len, size, burst, lock, cache, prot, qos, region)
+    var lits = Seq((x: RA) => x.addr -> addr.U, (x: RA) => x.len -> len.U, (x: RA) => x.size -> size.U,
+      (x: RA) => x.burst -> burst, (x: RA) => x.lock -> lock, (x: RA) => x.cache -> cache,
+      (x: RA) => x.prot -> prot, (x: RA) => x.qos -> qos, (x: RA) => x.region -> region)
+    if (ra.bits.idW > 0) lits = lits :+ ((x: RA) => x.id -> id.U)
+    if (ra.bits.userW > 0) lits = lits :+ ((x: RA) => x.user -> user)
+    val trx = new ReadTransaction((new RA(ra.bits.addrW, ra.bits.idW, ra.bits.userW)).Lit(lits :_*))
     awaitingRAddr = awaitingRAddr :+ trx
     awaitingRead  = awaitingRead  :+ trx
 

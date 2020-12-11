@@ -9,6 +9,8 @@
 package axi4
 
 import chisel3._
+import chisel3.experimental.BundleLiterals._
+import chisel3.internal.requireIsHardware
 
 /** Transaction superclass */
 trait Transaction {
@@ -17,41 +19,22 @@ trait Transaction {
 
 /** Write transaction
  *
- * @param addr start write address
- * @param data list of data to write
- * @param dataW slave's data bus width
- * @param id optional id, defaults to ID 0
- * @param len optional burst length, defaults to 0 (i.e., 1 beat)
- * @param size optional beat size, defaults to 1 byte
- * @param burst optional burst type, defaults to FIXED
- * @param lock optional lock type, defaults to normal access
- * @param cache optional memory attribute signal, defaults to device non-bufferable
- * @param prot optional protection type, defaults to non-secure unprivileged data access
- * @param qos optional QoS, defaults to 0
- * @param region optional region, defaults to 0
- * @param user optional user, defaults to 0
+ * @param ctrl an initialized WA object
+ * @param dw a WD object representing the write data channel
+ * @param data a sequence of data to write
  */
 class WriteTransaction(
-  val addr: BigInt, 
-  val data: Seq[BigInt], 
-  dataW: Int,
-  val id: BigInt = 0, 
-  val len: Int = 0, 
-  val size: Int = 0, 
-  val burst: UInt = BurstEncodings.Fixed, 
-  val lock: Bool = LockEncodings.NormalAccess, 
-  val cache: UInt = MemoryEncodings.DeviceNonbuf, 
-  val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
-  val qos: UInt = 0.U, 
-  val region: UInt = 0.U,
-  val user: UInt = 0.U) extends Transaction {
-  private[this] val numBytes = 1 << size
+  val ctrl: WA,
+  val dw: WD,
+  val data: Seq[BigInt]) extends Transaction {
+  requireIsHardware(ctrl, "ctrl must be an initialized WA object")
+  private[this] val numBytes = 1 << ctrl.size.litValue.intValue
   private[this] val dtsize = numBytes * data.length
-  private[this] val lowerBoundary = (addr / dtsize) * dtsize
+  private[this] val lowerBoundary = (ctrl.addr.litValue / dtsize) * dtsize
   private[this] val upperBoundary = lowerBoundary + dtsize
-  private[this] val alignedAddress = ((addr / numBytes) * numBytes)
-  private[this] var aligned = addr == alignedAddress
-  private[this] var address = addr
+  private[this] val alignedAddress = ((ctrl.addr.litValue / numBytes) * numBytes)
+  private[this] var aligned = ctrl.addr.litValue == alignedAddress
+  private[this] var address = ctrl.addr.litValue
   private[this] var count = 0
 
   private[this] var _addrSent = false
@@ -73,17 +56,17 @@ class WriteTransaction(
    */
   def next() = {
     /** Strobe calculation */
-    val offset = (address / dataW) * dataW
+    val offset = (address / dw.dataW) * dw.dataW
     val lowerByteLane = address - offset
     val upperByteLane = if (aligned) lowerByteLane + numBytes-1 else alignedAddress + numBytes-1 - offset
     def within(x: Int) = x >= 0 && x <= (upperByteLane - lowerByteLane)
-    val strb = ("b"+(0 until (dataW/8)).foldRight("") { (elem, acc) => if (within(elem)) acc + "1" else acc + "0" }).asUInt
+    val strb = ("b"+(0 until (dw.dataW/8)).foldRight("") { (elem, acc) => if (within(elem)) acc + "1" else acc + "0" }).asUInt
 
     /** Update address */
-    if (burst != BurstEncodings.Fixed) {
+    if (ctrl.burst != BurstEncodings.Fixed) {
       if (aligned) {
         address += numBytes
-        if (burst == BurstEncodings.Wrap) {
+        if (ctrl.burst == BurstEncodings.Wrap) {
           if (address >= upperBoundary) {
             address = lowerBoundary
           }
@@ -96,37 +79,20 @@ class WriteTransaction(
     count += 1
 
     /** Return data to write */
-    (data(count-1).U, strb, complete.B, user)
+    var lits = Seq((x: WD) => x.data -> data(count-1).U, (x: WD) => x.strb -> strb,
+      (x: WD) => x.last -> complete.B)
+    if (dw.userW > 0) lits = lits :+ ((x: WD) => x.user -> ctrl.user)
+    (new WD(dw.dataW, dw.userW)).Lit(lits :_*)
   }
   def complete = data.length == count
 }
 
 /** Read transaction 
  * 
- * @param addr start read address
- * @param id optional id, defaults to ID 0
- * @param len optional burst length, defaults to 0 (i.e., 1 beat)
- * @param size optional beat size, defaults to 1 byte
- * @param burst optional burst type, defaults to FIXED
- * @param lock optional lock type, defaults to normal access
- * @param cache optional memory attribute signal, defaults to device non-bufferable
- * @param prot optional protection type, defaults to non-secure unprivileged data access
- * @param qos optional QoS, defaults to 0
- * @param region optional region, defaults to 0
- * @param user optional user, defaults to 0
+ * @param ctrl an initialized RA object
  */
-class ReadTransaction(
-  val addr: BigInt, 
-  val id: BigInt = 0, 
-  val len: Int = 0, 
-  val size: Int = 0, 
-  val burst: UInt = BurstEncodings.Fixed, 
-  val lock: Bool = LockEncodings.NormalAccess, 
-  val cache: UInt = MemoryEncodings.DeviceNonbuf, 
-  val prot: UInt = ProtectionEncodings.DataNsecUpriv, 
-  val qos: UInt = 0.U, 
-  val region: UInt = 0.U,
-  val user: UInt = 0.U) extends Transaction {
+class ReadTransaction(val ctrl: RA) extends Transaction {
+  requireIsHardware(ctrl, "ctrl must be an initialized RA object")
   var data = Seq[BigInt]()
 
   private[this] var _addrSent = false
@@ -144,7 +110,7 @@ class ReadTransaction(
   def add(v: BigInt) = {
     data = data :+ v
   }
-  def complete = data.length == (len + 1)
+  def complete = data.length == (ctrl.len.litValue + 1)
 }
 
 /** Transaction response
