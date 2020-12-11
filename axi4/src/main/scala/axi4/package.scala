@@ -9,6 +9,32 @@
 import chisel3._
 
 package object axi4 {
+  /** AXI4 master
+   * 
+   * An empty class representing an AXI master
+   *
+   * @param addrW the width of the address signals in bits
+   * @param dataW the width of the data read/write signals in bits
+   * @param idW the width of the ID signals in bits, defaults to 0
+   * @param userW the width of the user signals in bits, defaults to 0
+   */
+  abstract class Master(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Module {
+    val io = IO(new MasterInterface(addrW, dataW, idW, userW))
+  }
+
+  /** AXI4 slave
+   * 
+   * An empty class representing an AXI slave
+   *
+   * @param addrW the width of the address signals in bits
+   * @param dataW the width of the data read/write signals in bits
+   * @param idW the width of the ID signals in bits, defaults to 0
+   * @param userW the width of the user signals in bits, defaults to 0
+   */
+  abstract class Slave(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW: Int = 0) extends Module {
+    val io = IO(new SlaveInterface(addrW, dataW, idW, userW))
+  }
+
   /** AXI4 burst encodings */
   object BurstEncodings {
     val Fixed             = "b00".U

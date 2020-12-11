@@ -27,11 +27,11 @@ class MasterInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val user
    * [[ra]] is the read address channel
    * [[rd]] is the read data channel
    */
-  val wa = Decoupled(Output(WA(addrW, idW, userW))) //Decoupled(new WA(addrW, idW, userW))
-  val wd = Decoupled(Output(WD(dataW, userW))) //Decoupled(new WD(dataW, userW))
-  val wr = Flipped(Decoupled(Output(WR(idW, userW)))) //Flipped(Decoupled(Flipped(new WR(idW, userW))))
-  val ra = Decoupled(RA(addrW, idW, userW)) //Decoupled(new RA(addrW, idW, userW))
-  val rd = Flipped(Decoupled(Output(RD(dataW, idW, userW)))) //Flipped(Decoupled(Flipped(new RD(dataW, idW, userW))))
+  val wa = Decoupled(Output(WA(addrW, idW, userW)))
+  val wd = Decoupled(Output(WD(dataW, userW)))
+  val wr = Flipped(Decoupled(Output(WR(idW, userW))))
+  val ra = Decoupled(RA(addrW, idW, userW))
+  val rd = Flipped(Decoupled(Output(RD(dataW, idW, userW))))
 }
 
 /** AXI4 slave interface
@@ -50,9 +50,9 @@ class SlaveInterface(val addrW: Int, val dataW: Int, val idW: Int = 0, val userW
    * [[ra]] is the read address channel
    * [[rd]] is the read data channel
    */
-  val wa = Flipped(Decoupled(Output(WA(addrW, idW, userW)))) //Flipped(Decoupled(new WA(addrW, idW, userW)))
-  val wd = Flipped(Decoupled(Output(WD(dataW, userW)))) //Flipped(Decoupled(new WD(dataW, userW)))
-  val wr = Decoupled(Output(WR(idW, userW))) //Flipped(Flipped(Decoupled(Flipped(new WR(idW, userW)))))
-  val ra = Flipped(Decoupled(Output(RA(addrW, idW, userW)))) //Flipped(Decoupled(new RA(addrW, idW, userW)))
-  val rd = Decoupled(Output(RD(dataW, idW, userW))) //Flipped(Flipped(Decoupled(Flipped(new RD(dataW, idW, userW)))))
+  val wa = Flipped(Decoupled(Output(WA(addrW, idW, userW))))
+  val wd = Flipped(Decoupled(Output(WD(dataW, userW))))
+  val wr = Decoupled(Output(WR(idW, userW)))
+  val ra = Flipped(Decoupled(Output(RA(addrW, idW, userW))))
+  val rd = Decoupled(Output(RD(dataW, idW, userW)))
 }
