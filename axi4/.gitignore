@@ -1,5 +1,6 @@
 # Ignore metals-related temp files
 .bloop/
+.ionide/
 .metals/
 .vscode/
 project/.bloop/

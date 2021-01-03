@@ -20,46 +20,46 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "initialize" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
     }
   }
 
   it should "write and read manually" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         def printCheck() = {
-          println("AWREADY = " + dut.io.aw.ready.peek.litToBoolean)
-          println("WREADY = " + dut.io.dw.ready.peek.litToBoolean)
+          println("AWREADY = " + dut.io.wa.ready.peek.litToBoolean)
+          println("WREADY = " + dut.io.wd.ready.peek.litToBoolean)
           println("BVALID = " + dut.io.wr.valid.peek.litToBoolean)
-          println("ARREADY = " + dut.io.ar.ready.peek.litToBoolean)
-          println("RVALID = " + dut.io.dr.valid.peek.litToBoolean)
+          println("ARREADY = " + dut.io.ra.ready.peek.litToBoolean)
+          println("RVALID = " + dut.io.rd.valid.peek.litToBoolean)
         }
 
         // Set some initial values on the necessary signals
-        dut.io.dw.bits.data.poke(42.U)
-        dut.io.dw.bits.strb.poke("b1111".U)
-        dut.io.dw.bits.last.poke(true.B)
+        dut.io.wd.bits.data.poke(42.U)
+        dut.io.wd.bits.strb.poke("b1111".U)
+        dut.io.wd.bits.last.poke(true.B)
         printCheck()
 
         // Write address
-        dut.io.aw.valid.poke(true.B)
+        dut.io.wa.valid.poke(true.B)
         do {
           dut.clock.step()
-        } while (!dut.io.aw.ready.peek.litToBoolean)
+        } while (!dut.io.wa.ready.peek.litToBoolean)
         printCheck()
         dut.clock.step()
-        dut.io.aw.valid.poke(false.B)
+        dut.io.wa.valid.poke(false.B)
 
         // Write some data
-        dut.io.dw.valid.poke(true.B)
+        dut.io.wd.valid.poke(true.B)
         do {
           dut.clock.step()
-        } while (!dut.io.dw.ready.peek.litToBoolean) 
+        } while (!dut.io.wd.ready.peek.litToBoolean) 
         printCheck()
         dut.clock.step()
-        dut.io.dw.valid.poke(false.B)
+        dut.io.wd.valid.poke(false.B)
 
         // Fetch response
         dut.io.wr.ready.poke(true.B)
@@ -71,28 +71,28 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
         println(s"Got response $r")
 
         // Read address
-        dut.io.ar.valid.poke(true.B)
+        dut.io.ra.valid.poke(true.B)
         do { 
           dut.clock.step()
-        } while (!dut.io.ar.ready.peek.litToBoolean)
+        } while (!dut.io.ra.ready.peek.litToBoolean)
         printCheck()
         dut.clock.step()
-        dut.io.ar.valid.poke(false.B)
+        dut.io.ra.valid.poke(false.B)
 
         // Read some data
-        dut.io.dr.ready.poke(true.B)
-        while (!dut.io.dr.valid.peek.litToBoolean) {
+        dut.io.rd.ready.poke(true.B)
+        while (!dut.io.rd.valid.peek.litToBoolean) {
           dut.clock.step()
         }
         printCheck()
-        dut.io.dr.bits.data.expect(42.U)
+        dut.io.rd.bits.data.expect(42.U)
     }
   }
 
   it should "write and read with FIXED transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create write transaction
         master.createWriteTrx(0, Seq(42), size = 2)
@@ -123,7 +123,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "write and read with INCR transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create write transaction
         master.createWriteTrx(128, Seq.fill(128)(0x7FFFFFFF), len = 0x7F, size = 2, burst = BurstEncodings.Incr)
@@ -154,7 +154,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "write and read with WRAP transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut =>
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // addr = 96
         // dtsize = 4 * 16 = 64
@@ -192,7 +192,7 @@ class VivadoAXIMemoryTester extends FlatSpec with ChiselScalatestTester with Mat
   it should "handle multiple in-flight transactions" in {
     test(new VivadoAXIMemory()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       dut => 
-        val master = new AXI4FunctionalMaster(dut)
+        val master = new FunctionalMaster(dut)
 
         // Create two write transactions
         val rng = new Random(42)
