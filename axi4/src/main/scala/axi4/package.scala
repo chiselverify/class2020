@@ -9,7 +9,18 @@
 import chisel3._
 
 package object axi4 {
-  /** AXI4 master
+  /** AXI4-Lite master
+   * 
+   * An empty class representing an AXI master
+   *
+   * @param addrW the width of the address signals in bits
+   * @param dataW the width of the data read/write signals in bits
+   */
+  abstract class LiteMaster(val addrW: Int, val dataW: Int) extends Module {
+    val io = IO(new MasterInterfaceLite(addrW, dataW))
+  }
+
+  /** AXI4 full master
    * 
    * An empty class representing an AXI master
    *
@@ -22,7 +33,18 @@ package object axi4 {
     val io = IO(new MasterInterface(addrW, dataW, idW, userW))
   }
 
-  /** AXI4 slave
+  /** AXI4-Lite slave
+   * 
+   * An empty class representing an AXI slave
+   *
+   * @param addrW the width of the address signals in bits
+   * @param dataW the width of the data read/write signals in bits
+   */
+  abstract class LiteSlave(val addrW: Int, val dataW: Int) extends Module {
+    val io = IO(new SlaveInterfaceLite(addrW, dataW))
+  }
+
+  /** AXI4 full slave
    * 
    * An empty class representing an AXI slave
    *
