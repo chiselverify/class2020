@@ -33,6 +33,5 @@ With IntelliJ import the lab2 project as follows:
  * Click *Import Project*, or on a running IntelliJ: *File - New -
 Project from Existing Source...*
  * Navigate to ```.../class2020/lab1``` and select the file ```build.sbt```, press *Open*
- * Make sure to select JDK 1.8 (not Java 11!)
  * Press OK on the next dialog box
 

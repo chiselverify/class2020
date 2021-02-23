@@ -30,6 +30,7 @@ Slides for testing in software - https://docs.google.com/presentation/d/1vtVaw38
 - by Hans Jakob Damsgaard
 - Implementation of interface and transaction specifications for the AMBA AXI4 protocol in Scala to make testing of compliant Chisel components easier.
 - found in `./axi4/`
+- UPDATE: moved to [chiselverify](https://github.com/chiselverify/chiselverify)
 
 ### Assertions with time
 - by Niels Frederik Frandsen and Victor Alexander Hansen
